@@ -1,0 +1,26 @@
+{
+  "name": "@meetra/web",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "db:migrate": "node db/manage.mjs migrate",
+    "db:seed": "node db/manage.mjs seed"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "^4.0.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.9.0",
+    "@types/pg": "^8.15.0"
+  }
+}

@@ -1,0 +1,1030 @@
+{
+  "people": [
+    {
+      "id": "raka",
+      "name": "Raka",
+      "campus": "Universitas Indonesia",
+      "offers": "Python",
+      "level": "Mahir",
+      "learns": "Figma",
+      "schedule": "Akhir pekan",
+      "language": "Indonesia"
+    },
+    {
+      "id": "dina",
+      "name": "Dina",
+      "campus": "Institut Teknologi Bandung",
+      "offers": "Python",
+      "level": "Menengah",
+      "learns": "Analisis Data",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "ayu",
+      "name": "Ayu",
+      "campus": "Universitas Gadjah Mada",
+      "offers": "Figma",
+      "level": "Mahir",
+      "learns": "Python",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "rio",
+      "name": "Rio",
+      "campus": "Universitas Indonesia",
+      "offers": "Public Speaking",
+      "level": "Menengah",
+      "learns": "Figma",
+      "schedule": "Akhir pekan",
+      "language": "Indonesia"
+    },
+    {
+      "id": "mira",
+      "name": "Mira",
+      "campus": "Universitas Airlangga",
+      "offers": "Analisis Data",
+      "level": "Mahir",
+      "learns": "Python",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "tari",
+      "name": "Tari",
+      "campus": "Universitas Diponegoro",
+      "offers": "Public Speaking",
+      "level": "Mahir",
+      "learns": "Analisis Data",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "bima",
+      "name": "Bima",
+      "campus": "Institut Teknologi Sepuluh Nopember",
+      "offers": "Excel",
+      "level": "Mahir",
+      "learns": "Python",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "sari",
+      "name": "Sari",
+      "campus": "Universitas Padjadjaran",
+      "offers": "Analisis Data",
+      "level": "Menengah",
+      "learns": "Public Speaking",
+      "schedule": "Akhir pekan",
+      "language": "Indonesia"
+    },
+    {
+      "id": "lintang",
+      "name": "Lintang",
+      "campus": "Universitas Brawijaya",
+      "offers": "Figma",
+      "level": "Menengah",
+      "learns": "Excel",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "nisa",
+      "name": "Nisa",
+      "campus": "Universitas Negeri Yogyakarta",
+      "offers": "Excel",
+      "level": "Menengah",
+      "learns": "Public Speaking",
+      "schedule": "Akhir pekan",
+      "language": "Keduanya"
+    },
+    {
+      "id": "salma",
+      "name": "Salma",
+      "campus": "Universitas Negeri Jakarta",
+      "offers": "Python",
+      "level": "Menengah",
+      "learns": "Excel",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-012",
+      "name": "Adel",
+      "campus": "Universitas Indonesia",
+      "offers": "Figma",
+      "level": "Menengah",
+      "learns": "Ilustrasi Digital",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-013",
+      "name": "Adi",
+      "campus": "Universitas Brawijaya",
+      "offers": "Ilustrasi Digital",
+      "level": "Mahir",
+      "learns": "Figma",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-014",
+      "name": "Adit",
+      "campus": "Universitas Sriwijaya",
+      "offers": "Ilustrasi Digital",
+      "level": "Menengah",
+      "learns": "Animasi 2D",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-015",
+      "name": "Adnan",
+      "campus": "Universitas Padjadjaran",
+      "offers": "Animasi 2D",
+      "level": "Pemula",
+      "learns": "Ilustrasi Digital",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-016",
+      "name": "Afifah",
+      "campus": "Universitas Sebelas Maret",
+      "offers": "Animasi 2D",
+      "level": "Mahir",
+      "learns": "Editing Video",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-017",
+      "name": "Agam",
+      "campus": "Institut Teknologi Sepuluh Nopember",
+      "offers": "Editing Video",
+      "level": "Menengah",
+      "learns": "Animasi 2D",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-018",
+      "name": "Aisha",
+      "campus": "Universitas Udayana",
+      "offers": "Editing Video",
+      "level": "Mahir",
+      "learns": "Fotografi",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-019",
+      "name": "Ajeng",
+      "campus": "Universitas Diponegoro",
+      "offers": "Fotografi",
+      "level": "Menengah",
+      "learns": "Editing Video",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-020",
+      "name": "Alif",
+      "campus": "Universitas Andalas",
+      "offers": "Fotografi",
+      "level": "Pemula",
+      "learns": "Desain Grafis",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-021",
+      "name": "Alina",
+      "campus": "Universitas Airlangga",
+      "offers": "Desain Grafis",
+      "level": "Mahir",
+      "learns": "Fotografi",
+      "schedule": "Hari kerja",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-022",
+      "name": "Amalia",
+      "campus": "Universitas Hasanuddin",
+      "offers": "Desain Grafis",
+      "level": "Menengah",
+      "learns": "Copywriting",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-023",
+      "name": "Amanda",
+      "campus": "Universitas Gadjah Mada",
+      "offers": "Copywriting",
+      "level": "Mahir",
+      "learns": "Desain Grafis",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-024",
+      "name": "Andara",
+      "campus": "Universitas Negeri Jakarta",
+      "offers": "Copywriting",
+      "level": "Menengah",
+      "learns": "Pemasaran Digital",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-025",
+      "name": "Andre",
+      "campus": "Institut Teknologi Bandung",
+      "offers": "Pemasaran Digital",
+      "level": "Pemula",
+      "learns": "Copywriting",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-026",
+      "name": "Andri",
+      "campus": "Universitas Negeri Yogyakarta",
+      "offers": "Pemasaran Digital",
+      "level": "Mahir",
+      "learns": "Bahasa Inggris",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-027",
+      "name": "Angga",
+      "campus": "Institut Teknologi Bandung",
+      "offers": "Bahasa Inggris",
+      "level": "Menengah",
+      "learns": "Pemasaran Digital",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-028",
+      "name": "Anita",
+      "campus": "Universitas Negeri Yogyakarta",
+      "offers": "Bahasa Inggris",
+      "level": "Mahir",
+      "learns": "Public Speaking",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-029",
+      "name": "Anwar",
+      "campus": "Universitas Indonesia",
+      "offers": "Public Speaking",
+      "level": "Menengah",
+      "learns": "Bahasa Inggris",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-030",
+      "name": "Ardi",
+      "campus": "Universitas Brawijaya",
+      "offers": "Public Speaking",
+      "level": "Pemula",
+      "learns": "Penulisan Akademik",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-031",
+      "name": "Arini",
+      "campus": "Universitas Sriwijaya",
+      "offers": "Penulisan Akademik",
+      "level": "Mahir",
+      "learns": "Public Speaking",
+      "schedule": "Hari kerja",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-032",
+      "name": "Arya",
+      "campus": "Universitas Padjadjaran",
+      "offers": "Penulisan Akademik",
+      "level": "Menengah",
+      "learns": "Metode Riset",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-033",
+      "name": "Aulia",
+      "campus": "Universitas Sebelas Maret",
+      "offers": "Metode Riset",
+      "level": "Mahir",
+      "learns": "Penulisan Akademik",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-034",
+      "name": "Bagas",
+      "campus": "Institut Teknologi Sepuluh Nopember",
+      "offers": "Metode Riset",
+      "level": "Menengah",
+      "learns": "Statistika",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-035",
+      "name": "Bella",
+      "campus": "Universitas Udayana",
+      "offers": "Statistika",
+      "level": "Pemula",
+      "learns": "Metode Riset",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-036",
+      "name": "Berlian",
+      "campus": "Universitas Diponegoro",
+      "offers": "Statistika",
+      "level": "Mahir",
+      "learns": "Analisis Data",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-037",
+      "name": "Cahya",
+      "campus": "Universitas Andalas",
+      "offers": "Analisis Data",
+      "level": "Menengah",
+      "learns": "Statistika",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-038",
+      "name": "Candra",
+      "campus": "Universitas Airlangga",
+      "offers": "Analisis Data",
+      "level": "Mahir",
+      "learns": "Excel",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-039",
+      "name": "Citra",
+      "campus": "Universitas Hasanuddin",
+      "offers": "Excel",
+      "level": "Menengah",
+      "learns": "Analisis Data",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-040",
+      "name": "Damar",
+      "campus": "Universitas Gadjah Mada",
+      "offers": "Excel",
+      "level": "Pemula",
+      "learns": "SQL",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-041",
+      "name": "Danang",
+      "campus": "Universitas Negeri Jakarta",
+      "offers": "SQL",
+      "level": "Mahir",
+      "learns": "Excel",
+      "schedule": "Hari kerja",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-042",
+      "name": "Dania",
+      "campus": "Universitas Gadjah Mada",
+      "offers": "SQL",
+      "level": "Menengah",
+      "learns": "Python",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-043",
+      "name": "Devi",
+      "campus": "Universitas Negeri Jakarta",
+      "offers": "Python",
+      "level": "Mahir",
+      "learns": "SQL",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-044",
+      "name": "Dewi",
+      "campus": "Institut Teknologi Bandung",
+      "offers": "Python",
+      "level": "Menengah",
+      "learns": "Machine Learning",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-045",
+      "name": "Dhea",
+      "campus": "Universitas Negeri Yogyakarta",
+      "offers": "Machine Learning",
+      "level": "Pemula",
+      "learns": "Python",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-046",
+      "name": "Dimas",
+      "campus": "Universitas Indonesia",
+      "offers": "Machine Learning",
+      "level": "Mahir",
+      "learns": "Git",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-047",
+      "name": "Dini",
+      "campus": "Universitas Brawijaya",
+      "offers": "Git",
+      "level": "Menengah",
+      "learns": "Machine Learning",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-048",
+      "name": "Dita",
+      "campus": "Universitas Sriwijaya",
+      "offers": "Git",
+      "level": "Mahir",
+      "learns": "JavaScript",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-049",
+      "name": "Eka",
+      "campus": "Universitas Padjadjaran",
+      "offers": "JavaScript",
+      "level": "Menengah",
+      "learns": "Git",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-050",
+      "name": "Elang",
+      "campus": "Universitas Sebelas Maret",
+      "offers": "JavaScript",
+      "level": "Pemula",
+      "learns": "React",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-051",
+      "name": "Elisa",
+      "campus": "Institut Teknologi Sepuluh Nopember",
+      "offers": "React",
+      "level": "Mahir",
+      "learns": "JavaScript",
+      "schedule": "Hari kerja",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-052",
+      "name": "Fadil",
+      "campus": "Universitas Udayana",
+      "offers": "React",
+      "level": "Menengah",
+      "learns": "HTML dan CSS",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-053",
+      "name": "Farah",
+      "campus": "Universitas Diponegoro",
+      "offers": "HTML dan CSS",
+      "level": "Mahir",
+      "learns": "React",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-054",
+      "name": "Farel",
+      "campus": "Universitas Andalas",
+      "offers": "HTML dan CSS",
+      "level": "Menengah",
+      "learns": "UI Research",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-055",
+      "name": "Faris",
+      "campus": "Universitas Airlangga",
+      "offers": "UI Research",
+      "level": "Pemula",
+      "learns": "HTML dan CSS",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-056",
+      "name": "Fathan",
+      "campus": "Universitas Hasanuddin",
+      "offers": "UI Research",
+      "level": "Mahir",
+      "learns": "Manajemen Proyek",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-057",
+      "name": "Fitri",
+      "campus": "Universitas Airlangga",
+      "offers": "Manajemen Proyek",
+      "level": "Menengah",
+      "learns": "UI Research",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-058",
+      "name": "Gading",
+      "campus": "Universitas Hasanuddin",
+      "offers": "Manajemen Proyek",
+      "level": "Mahir",
+      "learns": "Analisis Bisnis",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-059",
+      "name": "Galih",
+      "campus": "Universitas Gadjah Mada",
+      "offers": "Analisis Bisnis",
+      "level": "Menengah",
+      "learns": "Manajemen Proyek",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-060",
+      "name": "Hana",
+      "campus": "Universitas Negeri Jakarta",
+      "offers": "Analisis Bisnis",
+      "level": "Pemula",
+      "learns": "Figma",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-061",
+      "name": "Hanif",
+      "campus": "Institut Teknologi Bandung",
+      "offers": "Figma",
+      "level": "Mahir",
+      "learns": "Analisis Bisnis",
+      "schedule": "Hari kerja",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-062",
+      "name": "Icha",
+      "campus": "Universitas Negeri Yogyakarta",
+      "offers": "Figma",
+      "level": "Menengah",
+      "learns": "UI Research",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-063",
+      "name": "Ilham",
+      "campus": "Universitas Indonesia",
+      "offers": "UI Research",
+      "level": "Mahir",
+      "learns": "Figma",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-064",
+      "name": "Intan",
+      "campus": "Universitas Brawijaya",
+      "offers": "Ilustrasi Digital",
+      "level": "Menengah",
+      "learns": "Desain Grafis",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-065",
+      "name": "Iqbal",
+      "campus": "Universitas Sriwijaya",
+      "offers": "Desain Grafis",
+      "level": "Pemula",
+      "learns": "Ilustrasi Digital",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-066",
+      "name": "Jihan",
+      "campus": "Universitas Padjadjaran",
+      "offers": "Animasi 2D",
+      "level": "Mahir",
+      "learns": "Fotografi",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-067",
+      "name": "Kania",
+      "campus": "Universitas Sebelas Maret",
+      "offers": "Fotografi",
+      "level": "Menengah",
+      "learns": "Animasi 2D",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-068",
+      "name": "Karin",
+      "campus": "Institut Teknologi Sepuluh Nopember",
+      "offers": "Editing Video",
+      "level": "Mahir",
+      "learns": "Pemasaran Digital",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-069",
+      "name": "Keisha",
+      "campus": "Universitas Udayana",
+      "offers": "Pemasaran Digital",
+      "level": "Menengah",
+      "learns": "Editing Video",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-070",
+      "name": "Kirana",
+      "campus": "Universitas Diponegoro",
+      "offers": "Fotografi",
+      "level": "Pemula",
+      "learns": "Copywriting",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-071",
+      "name": "Krisna",
+      "campus": "Universitas Andalas",
+      "offers": "Copywriting",
+      "level": "Mahir",
+      "learns": "Fotografi",
+      "schedule": "Hari kerja",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-072",
+      "name": "Laras",
+      "campus": "Universitas Diponegoro",
+      "offers": "Desain Grafis",
+      "level": "Menengah",
+      "learns": "HTML dan CSS",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-073",
+      "name": "Luthfi",
+      "campus": "Universitas Andalas",
+      "offers": "HTML dan CSS",
+      "level": "Mahir",
+      "learns": "Desain Grafis",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-074",
+      "name": "Maya",
+      "campus": "Universitas Airlangga",
+      "offers": "Copywriting",
+      "level": "Menengah",
+      "learns": "Bahasa Inggris",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-075",
+      "name": "Melati",
+      "campus": "Universitas Hasanuddin",
+      "offers": "Bahasa Inggris",
+      "level": "Pemula",
+      "learns": "Copywriting",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-076",
+      "name": "Nadia",
+      "campus": "Universitas Gadjah Mada",
+      "offers": "Pemasaran Digital",
+      "level": "Mahir",
+      "learns": "Analisis Bisnis",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-077",
+      "name": "Nanda",
+      "campus": "Universitas Negeri Jakarta",
+      "offers": "Analisis Bisnis",
+      "level": "Menengah",
+      "learns": "Pemasaran Digital",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-078",
+      "name": "Naufal",
+      "campus": "Institut Teknologi Bandung",
+      "offers": "Bahasa Inggris",
+      "level": "Mahir",
+      "learns": "Penulisan Akademik",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-079",
+      "name": "Naya",
+      "campus": "Universitas Negeri Yogyakarta",
+      "offers": "Penulisan Akademik",
+      "level": "Menengah",
+      "learns": "Bahasa Inggris",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-080",
+      "name": "Niken",
+      "campus": "Universitas Indonesia",
+      "offers": "Public Speaking",
+      "level": "Pemula",
+      "learns": "Manajemen Proyek",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-081",
+      "name": "Nino",
+      "campus": "Universitas Brawijaya",
+      "offers": "Manajemen Proyek",
+      "level": "Mahir",
+      "learns": "Public Speaking",
+      "schedule": "Hari kerja",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-082",
+      "name": "Novi",
+      "campus": "Universitas Sriwijaya",
+      "offers": "Metode Riset",
+      "level": "Menengah",
+      "learns": "UI Research",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-083",
+      "name": "Oki",
+      "campus": "Universitas Padjadjaran",
+      "offers": "UI Research",
+      "level": "Mahir",
+      "learns": "Metode Riset",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-084",
+      "name": "Putra",
+      "campus": "Universitas Sebelas Maret",
+      "offers": "Statistika",
+      "level": "Menengah",
+      "learns": "Excel",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-085",
+      "name": "Putri",
+      "campus": "Institut Teknologi Sepuluh Nopember",
+      "offers": "Excel",
+      "level": "Pemula",
+      "learns": "Statistika",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-086",
+      "name": "Raisa",
+      "campus": "Universitas Udayana",
+      "offers": "Analisis Data",
+      "level": "Mahir",
+      "learns": "Python",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-087",
+      "name": "Rani",
+      "campus": "Institut Teknologi Sepuluh Nopember",
+      "offers": "Python",
+      "level": "Menengah",
+      "learns": "Analisis Data",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-088",
+      "name": "Rara",
+      "campus": "Universitas Udayana",
+      "offers": "SQL",
+      "level": "Mahir",
+      "learns": "Analisis Bisnis",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-089",
+      "name": "Ratih",
+      "campus": "Universitas Diponegoro",
+      "offers": "Analisis Bisnis",
+      "level": "Menengah",
+      "learns": "SQL",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-090",
+      "name": "Reza",
+      "campus": "Universitas Andalas",
+      "offers": "Machine Learning",
+      "level": "Pemula",
+      "learns": "Statistika",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-091",
+      "name": "Rian",
+      "campus": "Universitas Airlangga",
+      "offers": "Statistika",
+      "level": "Mahir",
+      "learns": "Machine Learning",
+      "schedule": "Hari kerja",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-092",
+      "name": "Rini",
+      "campus": "Universitas Hasanuddin",
+      "offers": "Git",
+      "level": "Menengah",
+      "learns": "React",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-093",
+      "name": "Rizal",
+      "campus": "Universitas Gadjah Mada",
+      "offers": "React",
+      "level": "Mahir",
+      "learns": "Git",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-094",
+      "name": "Rizka",
+      "campus": "Universitas Negeri Jakarta",
+      "offers": "JavaScript",
+      "level": "Menengah",
+      "learns": "HTML dan CSS",
+      "schedule": "Fleksibel",
+      "language": "Inggris"
+    },
+    {
+      "id": "roster-095",
+      "name": "Satria",
+      "campus": "Institut Teknologi Bandung",
+      "offers": "HTML dan CSS",
+      "level": "Pemula",
+      "learns": "JavaScript",
+      "schedule": "Hari kerja",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-096",
+      "name": "Sekar",
+      "campus": "Universitas Negeri Yogyakarta",
+      "offers": "React",
+      "level": "Mahir",
+      "learns": "Figma",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-097",
+      "name": "Shinta",
+      "campus": "Universitas Indonesia",
+      "offers": "Figma",
+      "level": "Menengah",
+      "learns": "React",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-098",
+      "name": "Sinta",
+      "campus": "Universitas Brawijaya",
+      "offers": "Manajemen Proyek",
+      "level": "Mahir",
+      "learns": "Git",
+      "schedule": "Fleksibel",
+      "language": "Keduanya"
+    },
+    {
+      "id": "roster-099",
+      "name": "Surya",
+      "campus": "Universitas Sriwijaya",
+      "offers": "Git",
+      "level": "Menengah",
+      "learns": "Manajemen Proyek",
+      "schedule": "Hari kerja",
+      "language": "Indonesia"
+    },
+    {
+      "id": "roster-100",
+      "name": "Tegar",
+      "campus": "Universitas Padjadjaran",
+      "offers": "Excel",
+      "level": "Pemula",
+      "learns": "SQL",
+      "schedule": "Fleksibel",
+      "language": "Indonesia"
+    }
+  ],
+  "pods": [
+    {
+      "id": "figma-dasar",
+      "title": "Dasar Prototipe Figma",
+      "topic": "Figma",
+      "schedule": "Hari kerja",
+      "mentor": "ayu",
+      "mentee": "rio"
+    },
+    {
+      "id": "figma-praktik",
+      "title": "Latihan Desain Aplikasi",
+      "topic": "Figma",
+      "schedule": "Akhir pekan",
+      "mentor": "lintang",
+      "mentee": "raka"
+    },
+    {
+      "id": "public-speaking",
+      "title": "Latihan Presentasi Kampus",
+      "topic": "Public Speaking",
+      "schedule": "Hari kerja",
+      "mentor": "tari",
+      "mentee": "sari"
+    }
+  ]
+}

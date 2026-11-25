@@ -1,0 +1,16 @@
+{
+  "name": "meetra",
+  "private": true,
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @meetra/web dev",
+    "build": "pnpm --filter @meetra/web build",
+    "start": "pnpm --filter @meetra/web start",
+    "typecheck": "pnpm --filter @meetra/web typecheck",
+    "db:migrate": "pnpm --filter @meetra/web db:migrate",
+    "db:seed": "pnpm --filter @meetra/web db:seed"
+  }
+}
