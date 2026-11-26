@@ -11,7 +11,7 @@ Gunakan Node.js 22, pnpm 10.34.9, dan satu database PostgreSQL khusus Meetra. Sa
 | `DATABASE_URL` | Wajib. URL PostgreSQL lokal atau URL pooled Neon untuk Vercel. |
 | `GEMINI_API_KEY` | Key dari Google AI Studio untuk pencocokan AI. Jika kosong atau Gemini gagal, aplikasi memakai pencocokan demo. |
 | `GEMINI_MODEL` | Opsional. Default `gemini-3.5-flash-lite`. Model pengganti perlu mendukung keluaran JSON terstruktur. |
-| `DISCORD_SERVER_INVITE_URL` | Opsional. Link undangan HTTPS ke server Discord early test, misalnya `https://discord.gg/KODE`. Meetra menampilkan link setelah semua calon anggota contoh menerima undangan simulasi. |
+| `DISCORD_SERVER_INVITE_URL` | Opsional. Link undangan HTTPS ke server Discord early test, misalnya `https://discord.gg/KODE`. Pengirim mendapat link setelah undangan terkirim. Penerima mendapatnya setelah memilih **Accept & Join Discord**. |
 
 ```sh
 pnpm install
@@ -31,8 +31,8 @@ Impor repositori ke Vercel, pilih preset **Next.js**, Root Directory **apps/web*
 ## Perilaku prototipe dan privasi
 
 - Peserta memakai username, password khusus uji, dan alias. Saat keluar atau berganti browser, peserta bisa masuk lagi untuk melanjutkan onboarding, sesi, atau feedback. Progres versi lama yang tersimpan di browser tidak diimpor.
-- Akun dummy sudah terisi dan tersedia sebagai kandidat. Akun tersebut tidak bisa dipakai login. Peserta lain tidak muncul di rekomendasi atau daftar anggota Pod. Pod hasil pembentukan atau topik manual hanya tersedia untuk pembuatnya melalui sesi dan riwayat akun.
-- Setiap pencarian menampilkan hingga lima rekomendasi partner atau Pod yang sudah ada, diurutkan berdasarkan skor. Jika belum ada Pod relevan dan anggota yang cocok cukup, layar **Form a new Pod** menampilkan susunan calon anggota. Untuk rekomendasi yang seluruhnya memakai akun contoh, pilih **Send invite** atau **Send invites** untuk mensimulasikan respons sebelum sesi dimulai. Pilihan yang dilewati disembunyikan sampai peserta memulai pencarian baru dari pilihan format.
+- Semua rekomendasi 1-on-1 dan usulan Pod baru memakai **Send invite**. Pengirim langsung melihat link Discord dan bisa membukanya lagi di **Sent**. Peserta sungguhan bisa merespons lewat **Received**, sedangkan akun contoh tetap berstatus menunggu. Fasilitator memberikan akses ke channel privat secara manual.
+- Setiap pencarian menampilkan hingga lima rekomendasi partner atau Pod yang sudah ada, diurutkan berdasarkan skor. Jika belum ada Pod relevan dan anggota yang cocok cukup, layar **Form a new Pod** menampilkan susunan calon anggota. Pilihan yang dilewati disembunyikan sampai peserta memulai pencarian baru dari pilihan format.
 - Persentase kecocokan dihitung oleh server dari skill (55%), level pengajar terhadap target belajar (20%), jadwal (15%), dan bahasa (10%). Jika target belajar tidak tersedia, bobot level digabung ke skill. Kecocokan semantik yang dikenali Gemini mendapat sebagian bobot skill. Exchange 1-on-1 memerlukan kecocokan skill di kedua arah. Di Pod, skor memakai topik, jadwal Pod, dan anggota yang paling sesuai dengan peran peserta. Skor mengestimasi kecocokan profil. Feedback awal tetap mengukur relevansi dari sudut pandang peserta.
 - Gunakan data contoh. Jika Gemini aktif, server mengirim skill, tujuan, preferensi, dan sinyal relevansi dari sesi sebelumnya. Username, password, alias peserta, dan komentar feedback tetap di server. Key juga tetap di server. Batasi pembagian URL ke peserta yang diundang dan pantau pemakaian di Google AI Studio.
 - Target pilot di abstrak, yaitu enam sesi terkonfirmasi dalam tujuh hari, baru bisa dinilai saat mahasiswa sungguhan bisa saling terhubung dan berkoordinasi. Early test ini mencatat penyelesaian simulasi, relevansi, dan niat belajar.
@@ -47,12 +47,12 @@ Rekrut lima mahasiswa dan lakukan sesi termoderasi. Minta peserta membuat akun u
 
 | Tugas | Bacakan | Profil contoh untuk fasilitator |
 |---|---|---|
-| 1-on-1 | “Kamu ingin belajar mengolah hasil survei dengan bantuan seorang mahasiswa. Temukan partner, jalani simulasi, lalu beri feedback.” | Daftar dan isi skill ditawarkan Figma, skill dipelajari Python, level Pemula ke Menengah, dan tujuan mengolah data survei. |
+| 1-on-1 | “Kamu ingin belajar mengolah hasil survei dengan bantuan seorang mahasiswa. Temukan partner dan ajak dia belajar.” | Daftar dan isi skill ditawarkan Figma, skill dipelajari Python, level Pemula ke Menengah, dan tujuan mengolah data survei. Selesai saat undangan terkirim. |
 | Pod yang sudah ada | “Kamu ingin berlatih membuat prototipe aplikasi bersama mahasiswa lain. Temukan Pod, jalani simulasi, lalu beri feedback.” | Mulai dari profil tugas pertama dan ubah skill yang dipelajari ke Figma, dengan tujuan membuat prototipe aplikasi. Katalog berisi dua Pod Figma. |
-| Pembentukan Pod | “Kamu ingin belajar Python bersama beberapa mahasiswa. Temukan Pod yang sesuai, jalani simulasi, lalu beri feedback.” | Gunakan profil dengan kebutuhan Python. Katalog punya mentor dan mentee Python, tanpa Pod Python. Jalankan sebagai tugas tambahan atau pemeriksaan teknis. |
+| Pembentukan Pod | “Kamu ingin belajar Python bersama beberapa mahasiswa. Temukan susunan Pod yang sesuai, lalu ajak anggotanya belajar.” | Gunakan profil dengan kebutuhan Python. Katalog punya mentor dan mentee Python, tanpa Pod Python. Jalankan sebagai tugas tambahan atau pemeriksaan teknis. |
 | Cabang mentor | “Kamu ingin membagikan skill Figma. Pod yang muncul kurang sesuai, jadi mulai topik Podmu sendiri.” | Gunakan skill yang ditawarkan Figma. Skenario tambahan untuk memeriksa cabang Offer setelah melewati Pod yang ada. |
 
-Mulai timer saat peserta menerima tugas dan hentikan ketika feedback terkirim atau peserta berhenti. Untuk rekomendasi yang tampil, mintalah peserta memberi nilai relevansi 1–5, menjelaskan alasannya, dan menjawab “Apakah kamu bersedia belajar dengan partner atau Pod ini?” Catat jawaban dan mode pencocokan. Sisipkan pertanyaan ini setelah peserta meninjau rekomendasi dan jeda timer selama wawancara. Target fungsionalitas awalnya minimal empat dari lima peserta menyelesaikan kedua tugas utama tanpa petunjuk navigasi. Catat kecocokan solusi sebagai penilaian dan niat yang dilaporkan peserta.
+Mulai timer saat peserta menerima tugas dan hentikan ketika tugas mencapai titik selesai atau peserta berhenti. Untuk Pod yang sudah ada, titik selesai adalah saat feedback terkirim. Untuk rekomendasi yang tampil, mintalah peserta memberi nilai relevansi 1–5, menjelaskan alasannya, dan menjawab “Apakah kamu bersedia belajar dengan partner atau Pod ini?” Catat jawaban dan mode pencocokan. Sisipkan pertanyaan ini setelah peserta meninjau rekomendasi dan jeda timer selama wawancara. Target fungsionalitas awalnya minimal empat dari lima peserta menyelesaikan kedua tugas utama tanpa petunjuk navigasi. Catat kecocokan solusi sebagai penilaian dan niat yang dilaporkan peserta.
 
 ### Lembar pencatatan
 

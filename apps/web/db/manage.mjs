@@ -21,11 +21,12 @@ try {
   await client.query("SELECT pg_advisory_xact_lock(27192601)");
   if (task === "migrate") {
     await client.query("CREATE TABLE IF NOT EXISTS meetra_migrations (version text PRIMARY KEY)");
-    const version = "001-initial";
-    const found = await client.query("SELECT 1 FROM meetra_migrations WHERE version = $1", [version]);
-    if (!found.rowCount) {
-      await client.query(await readFile(new URL("./001-initial.sql", import.meta.url), "utf8"));
-      await client.query("INSERT INTO meetra_migrations VALUES ($1)", [version]);
+    for (const version of ["001-initial", "002-match-invitations"]) {
+      const found = await client.query("SELECT 1 FROM meetra_migrations WHERE version = $1", [version]);
+      if (!found.rowCount) {
+        await client.query(await readFile(new URL(`./${version}.sql`, import.meta.url), "utf8"));
+        await client.query("INSERT INTO meetra_migrations VALUES ($1)", [version]);
+      }
     }
   } else {
     const { people, pods } = JSON.parse(await readFile(new URL("./fixtures.json", import.meta.url), "utf8"));

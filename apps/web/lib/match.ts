@@ -68,9 +68,9 @@ export type MatchResult = { source: "gemini" | "demo" } & (
 
 export type ScoredMatch = Exclude<MatchResult, { kind: "empty" }> & { score: number };
 
-export function simulatedInvitees(result: Exclude<MatchResult, { kind: "empty" }>): Person[] {
-  if (result.kind === "partner" && !result.person.participant) return [result.person];
-  if (result.kind === "new" && result.members.every((member) => !member.participant)) return result.members;
+export function invitationRecipients(result: Exclude<MatchResult, { kind: "empty" }>): Person[] {
+  if (result.kind === "partner") return [result.person];
+  if (result.kind === "new") return result.members;
   return [];
 }
 

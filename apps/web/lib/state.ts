@@ -21,11 +21,6 @@ export const accountActionSchema = z.discriminatedUnion("action", [
 
 export const learningActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("start"), recommendationId: z.uuid() }),
-  z.object({ action: z.literal("send-invite"), recommendationId: z.uuid() }),
-  z.object({
-    action: z.literal("respond-to-invite"), recommendationId: z.uuid(),
-    recipientId: z.string().min(1).max(60), response: z.enum(["accept", "decline"]),
-  }),
   z.object({
     action: z.literal("new-topic"), recommendationId: z.uuid(),
     title: z.string().trim().min(1).max(60), goal: z.string().trim().min(1).max(300),
@@ -59,11 +54,25 @@ export const signedOutStore: Store = { account: null, profile: null, active: nul
 export type Recommendation = ScoredMatch & { recommendationId: string };
 export type RecommendationList = { items: Recommendation[] };
 export type RecommendationContacts = Record<string, string>;
-export type SimulatedInvitation = {
-  acceptedIds: string[];
-  declinedBy?: string;
-  status: "pending" | "accepted" | "declined";
-  discordAvailable: boolean;
+const invitationResponse = z.enum(["accepted", "declined"]);
+export const invitationActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("send"), recommendationId: z.uuid() }),
+  z.object({ action: z.literal("respond"), invitationId: z.uuid(), response: invitationResponse }),
+]);
+export type InvitationAction = z.infer<typeof invitationActionSchema>;
+export type InvitationStatus = "pending" | z.infer<typeof invitationResponse>;
+export type MatchInvitation = {
+  id: string;
+  direction: "received" | "sent";
+  senderName: string;
+  topic: string;
+  format: Format;
+  members: { id: string; name: string; response?: InvitationStatus }[];
+  response?: InvitationStatus;
   discordServerInviteUrl?: string;
 };
-export type LearningResponse = Store & { simulatedInvitation?: SimulatedInvitation };
+export type InvitationInbox = {
+  received: MatchInvitation[];
+  sent: MatchInvitation[];
+  discordAvailable: boolean;
+};
