@@ -47,12 +47,12 @@ export async function findAccount(request: NextRequest) {
 
 export async function requireAccount(request: NextRequest) {
   const account = await findAccount(request);
-  if (!account) throw new RequestError("Masuk dulu untuk melanjutkan.", 401);
+  if (!account) throw new RequestError("Sign in to continue.", 401);
   return account;
 }
 
 export async function register(username: string, password: string) {
-  if (username.startsWith("dummy_")) throw new RequestError("Pilih username lain.");
+  if (username.startsWith("dummy_")) throw new RequestError("Choose a different username.");
   const id = randomUUID();
   const hash = await passwordHash(password);
   const token = randomBytes(32).toString("hex");
@@ -61,7 +61,7 @@ export async function register(username: string, password: string) {
       INSERT INTO accounts AS a (id, username, password_hash) VALUES ($1, $2, $3)
       ON CONFLICT (username) DO NOTHING RETURNING ${accountFields}
     `, [id, username, hash]);
-    if (!account.rows[0]) throw new RequestError("Username sudah dipakai.", 409);
+    if (!account.rows[0]) throw new RequestError("This username is already taken.", 409);
     await client.query("INSERT INTO login_sessions VALUES ($1, $2, $3)", [tokenHash(token), id, expiresAt()]);
     return { account: account.rows[0], token };
   });
@@ -76,14 +76,14 @@ export async function login(username: string, password: string) {
     WHERE login_attempts.expires_at <= now() OR login_attempts.attempts < 6
     RETURNING attempts
   `, [username]);
-  if (!rows[0] || rows[0].attempts > 5) throw new RequestError("Terlalu banyak percobaan. Coba lagi dalam 15 menit.", 429);
+  if (!rows[0] || rows[0].attempts > 5) throw new RequestError("Too many sign-in attempts. Try again in 15 minutes.", 429);
 
   const result = await db().query<{ password_hash: string | null } & Account>(`
     SELECT ${accountFields}, password_hash FROM accounts a WHERE username = $1
   `, [username]);
   const row = result.rows[0];
   if (!await matchesPassword(password, row?.password_hash) || !row) {
-    throw new RequestError("Username atau password salah.", 401);
+    throw new RequestError("The username or password is incorrect.", 401);
   }
   const { password_hash: _, ...account } = row;
   const token = randomBytes(32).toString("hex");

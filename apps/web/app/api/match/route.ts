@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const search = searchSchema.safeParse(await readJson(request));
     const profile = profileSchema.safeParse(account.draft);
     if (!search.success || !profile.success || account.onboardingStep !== 4) {
-      throw new RequestError("Lengkapi profil dan pilihan pencarian.");
+      throw new RequestError("Complete your profile and choose how you want to search.");
     }
 
     const { alias, ...matchingProfile } = profile.data;

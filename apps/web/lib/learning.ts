@@ -1,51 +1,79 @@
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import type { Account } from "./auth";
+import { catalogPersonLabel, podTitleLabel } from "./catalog";
 import { db, transaction } from "./db";
 import { RequestError } from "./http";
 import { levels, profileSchema, type FeedbackSignal, type MatchResult, type Mode, type Profile } from "./match";
+import { skillLabel } from "./skills";
 import { onboardingFields, signedOutStore, type CompletedSession, type LearningAction, type Session, type Store } from "./state";
+
+function partnerSessionTitle(name: string) {
+  return `Study with ${name}`;
+}
+
+function teachingGoal(format: Session["format"], topic: string) {
+  return `Help ${format === "pair" ? "your partner" : "Pod members"} learn ${skillLabel(topic)}.`;
+}
+
+function sessionLabels<T extends Session>(session: T, mode: Mode | null): T {
+  const { format, source, title, topic, goal, person, members } = session;
+  if (source === "manual") return session;
+
+  const oldTeachingGoal = `Membantu ${format === "pair" ? "partner" : "anggota Pod"} belajar ${topic}.`;
+  return {
+    ...session,
+    title: format === "pod" ? podTitleLabel(title, topic)
+      : person && title === `Belajar dengan ${person.name}` ? partnerSessionTitle(person.name) : title,
+    topic: skillLabel(topic),
+    goal: mode === "offer" && goal === oldTeachingGoal ? teachingGoal(format, topic) : goal,
+    ...(person && { person: catalogPersonLabel(person) }),
+    ...(members && { members: members.map(catalogPersonLabel) }),
+  };
+}
 
 export async function dashboard(account: Account | null): Promise<Store> {
   if (!account) return signedOutStore;
   const profile = account.onboardingStep === 4 ? profileSchema.parse(account.draft) : null;
-  const { rows } = await db().query<{ session: Session | CompletedSession }>(`
+  const { rows } = await db().query<{ session: Session | CompletedSession; mode: Mode | null }>(`
     SELECT l.snapshot || jsonb_build_object('id', l.id, 'status', l.status) ||
       CASE WHEN l.status = 'completed' THEN jsonb_build_object(
         'completedAt', l.completed_at, 'feedback', jsonb_build_object('rating', f.rating, 'note', f.note)
-      ) ELSE '{}'::jsonb END AS session
+      ) ELSE '{}'::jsonb END AS session, r.mode
     FROM learning_sessions l LEFT JOIN feedback f ON f.session_id = l.id
+    LEFT JOIN recommendations r ON r.id = l.recommendation_id
     WHERE l.account_id = $1
     ORDER BY (l.status <> 'completed') DESC, l.completed_at DESC
   `, [account.id]);
+  const sessions = rows.map(({ session, mode }) => sessionLabels(session, mode));
   return {
     account: { username: account.username, onboardingStep: account.onboardingStep, draft: account.draft },
     profile,
-    active: rows.find(({ session }) => session.status !== "completed")?.session ?? null,
-    history: rows.flatMap(({ session }) => session.status === "completed" && "feedback" in session ? [session] : []),
+    active: sessions.find((session) => session.status !== "completed") ?? null,
+    history: sessions.filter((session): session is CompletedSession => session.status === "completed" && "feedback" in session),
   };
 }
 
 function validateLevels(profile: Partial<Profile>) {
   if (profile.targetLevel && profile.currentLevel && levels.indexOf(profile.targetLevel) < levels.indexOf(profile.currentLevel)) {
-    throw new RequestError("Pilih level target yang sama atau lebih tinggi dari level saat ini.");
+    throw new RequestError("Choose a target level at or above your current level.");
   }
 }
 
 export async function saveOnboarding(accountId: string, step: number, input: unknown) {
   const fields = onboardingFields[step].safeParse(input);
-  if (!fields.success) throw new RequestError("Lengkapi langkah profil ini.");
+  if (!fields.success) throw new RequestError("Complete this step of your profile.");
   validateLevels(fields.data);
 
   return transaction(async (client) => {
     const fresh = await lockAccount(client, accountId);
     if (fresh.onboardingStep === 4 || step > fresh.onboardingStep) {
-      throw new RequestError("Muat ulang untuk melanjutkan dari langkah yang tersimpan.", 409);
+      throw new RequestError("Reload to continue from your saved step.", 409);
     }
     const draft = { ...fresh.draft, ...fields.data };
     const onboardingStep = Math.max(step + 1, fresh.onboardingStep);
     if (onboardingStep === 4 && !profileSchema.safeParse(draft).success) {
-      throw new RequestError("Lengkapi seluruh profil sebelum melanjutkan.");
+      throw new RequestError("Complete your profile before continuing.");
     }
     await client.query("UPDATE accounts SET profile = $2, onboarding_step = $3 WHERE id = $1", [accountId, draft, onboardingStep]);
     return { ...fresh, draft, onboardingStep };
@@ -53,7 +81,7 @@ export async function saveOnboarding(accountId: string, step: number, input: unk
 }
 
 export async function saveProfile(account: Account, profile: Profile) {
-  if (account.onboardingStep !== 4) throw new RequestError("Selesaikan onboarding dulu.", 409);
+  if (account.onboardingStep !== 4) throw new RequestError("Finish setting up your profile first.", 409);
   validateLevels(profile);
   await db().query("UPDATE accounts SET profile = $2 WHERE id = $1", [account.id, profile]);
   return { ...account, draft: profile };
@@ -75,23 +103,23 @@ async function lockAccount(client: PoolClient, id: string) {
   const { rows } = await client.query<Account>(`
     SELECT id, username, onboarding_step AS "onboardingStep", profile AS draft FROM accounts WHERE id = $1 FOR UPDATE
   `, [id]);
-  if (!rows[0]) throw new RequestError("Masuk dulu untuk melanjutkan.", 401);
+  if (!rows[0]) throw new RequestError("Sign in to continue.", 401);
   return rows[0];
 }
 
 async function start(client: PoolClient, account: Account, action: Extract<LearningAction, { action: "start" | "new-topic" }>) {
-  if (account.onboardingStep !== 4) throw new RequestError("Selesaikan onboarding dulu.", 409);
+  if (account.onboardingStep !== 4) throw new RequestError("Finish setting up your profile first.", 409);
   const { rows: previous } = await client.query("SELECT 1 FROM learning_sessions WHERE account_id = $1 AND recommendation_id = $2", [account.id, action.recommendationId]);
   if (previous.length) return;
 
   const { rows: active } = await client.query("SELECT 1 FROM learning_sessions WHERE account_id = $1 AND status <> 'completed'", [account.id]);
-  if (active.length) throw new RequestError("Tuntaskan sesi aktif sebelum memulai sesi baru.", 409);
+  if (active.length) throw new RequestError("Finish your active session before starting another.", 409);
 
   const { rows } = await client.query<{ mode: Mode; result: Exclude<MatchResult, { kind: "empty" }> }>(`
     SELECT mode, result FROM recommendations
     WHERE id = $1 AND account_id = $2 AND expires_at > now()
   `, [action.recommendationId, account.id]);
-  if (!rows[0]) throw new RequestError("Rekomendasi sudah tidak tersedia. Mulai pencarian baru.", 404);
+  if (!rows[0]) throw new RequestError("This recommendation has expired. Start a new search.", 404);
 
   const { mode, result } = rows[0];
   const profile = profileSchema.parse(account.draft);
@@ -99,21 +127,21 @@ async function start(client: PoolClient, account: Account, action: Extract<Learn
   let snapshot: Omit<Session, "id" | "status">;
 
   if (action.action === "new-topic") {
-    if (mode !== "offer" || result.kind !== "existing") throw new RequestError("Topik baru tersedia setelah melewati Pod sebagai mentor.", 409);
+    if (mode !== "offer" || result.kind !== "existing") throw new RequestError("Skip an existing Pod as a mentor to create a new topic.", 409);
     podId = randomUUID();
     snapshot = { format: "pod", title: action.title, topic: profile.offeredSkill, goal: action.goal, source: "manual", members: [], role: "Mentor" };
     await createPod(client, podId, account.id, snapshot, profile.schedule);
   } else if (result.kind === "partner") {
     snapshot = {
-      format: "pair", title: `Belajar dengan ${result.person.name}`, topic: result.topic,
-      goal: mode === "offer" ? `Membantu partner belajar ${result.topic}.` : profile.goal,
+      format: "pair", title: partnerSessionTitle(result.person.name), topic: result.topic,
+      goal: mode === "offer" ? teachingGoal("pair", result.topic) : profile.goal,
       source: result.source, person: result.person,
     };
   } else {
     podId = result.id;
     snapshot = {
       format: "pod", title: result.title, topic: result.topic,
-      goal: mode === "offer" ? `Membantu anggota Pod belajar ${result.topic}.` : profile.goal,
+      goal: mode === "offer" ? teachingGoal("pod", result.topic) : profile.goal,
       source: result.source, members: result.members,
       role: mode === "offer" ? result.kind === "existing" ? "Mentor tambahan" : "Mentor" : "Mentee",
     };
@@ -150,12 +178,12 @@ export async function updateLearning(account: Account, action: LearningAction) {
       "SELECT status FROM learning_sessions WHERE id = $1 AND account_id = $2", [action.sessionId, account.id],
     );
     const status = rows[0]?.status;
-    if (!status) throw new RequestError("Sesi tidak ditemukan.", 404);
+    if (!status) throw new RequestError("Session not found.", 404);
     if (action.action === "finish" && status === "active") {
       await client.query("UPDATE learning_sessions SET status = 'feedback' WHERE id = $1", [action.sessionId]);
     }
     if (action.action === "feedback" && status !== "completed") {
-      if (status !== "feedback") throw new RequestError("Selesaikan sesi sebelum memberi feedback.", 409);
+      if (status !== "feedback") throw new RequestError("Finish the session before giving feedback.", 409);
       await client.query("INSERT INTO feedback VALUES ($1, $2, $3)", [action.sessionId, action.rating, action.note]);
       await client.query("UPDATE learning_sessions SET status = 'completed', completed_at = now() WHERE id = $1", [action.sessionId]);
     }

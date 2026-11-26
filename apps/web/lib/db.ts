@@ -5,9 +5,9 @@ const database = globalThis as typeof globalThis & { meetraPool?: Pool };
 export function db() {
   if (!database.meetraPool) {
     const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) throw new Error("DATABASE_URL belum disiapkan.");
+    if (!connectionString) throw new Error("DATABASE_URL is missing.");
     database.meetraPool = new Pool({ connectionString, max: 4, connectionTimeoutMillis: 5000 });
-    database.meetraPool.on("error", () => console.error("Koneksi idle PostgreSQL terputus."));
+    database.meetraPool.on("error", () => console.error("An idle PostgreSQL connection was lost."));
   }
   return database.meetraPool;
 }

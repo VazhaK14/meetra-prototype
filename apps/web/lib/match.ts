@@ -4,6 +4,10 @@ export const levels = ["Pemula", "Menengah", "Mahir"] as const;
 export const schedules = ["Fleksibel", "Hari kerja", "Akhir pekan"] as const;
 export const languages = ["Indonesia", "Inggris", "Keduanya"] as const;
 
+export const levelLabels = { Pemula: "Beginner", Menengah: "Intermediate", Mahir: "Advanced" } as const;
+export const scheduleLabels = { Fleksibel: "Flexible", "Hari kerja": "Weekdays", "Akhir pekan": "Weekends" } as const;
+export const languageLabels = { Indonesia: "Indonesian", Inggris: "English", Keduanya: "Both" } as const;
+
 const skill = z.string().trim().min(1).max(60);
 const matchProfileSchema = z.object({
   offeredSkill: skill,

@@ -26,4 +26,25 @@ export const skillAliases = {
   "Analisis Bisnis": ["business analysis", "analisis proses bisnis"],
 } as const;
 
-export const skillSuggestions = Object.keys(skillAliases).sort();
+const skillLabels = new Map([
+  ["Ilustrasi Digital", "Digital Illustration"],
+  ["Animasi 2D", "2D Animation"],
+  ["Editing Video", "Video Editing"],
+  ["Fotografi", "Photography"],
+  ["Desain Grafis", "Graphic Design"],
+  ["Pemasaran Digital", "Digital Marketing"],
+  ["Bahasa Inggris", "English"],
+  ["Penulisan Akademik", "Academic Writing"],
+  ["Metode Riset", "Research Methods"],
+  ["Statistika", "Statistics"],
+  ["Analisis Data", "Data Analysis"],
+  ["HTML dan CSS", "HTML and CSS"],
+  ["Manajemen Proyek", "Project Management"],
+  ["Analisis Bisnis", "Business Analysis"],
+]);
+
+export function skillLabel(skill: string) {
+  return skillLabels.get(skill) ?? skill;
+}
+
+export const skillSuggestions = Object.keys(skillAliases).map(skillLabel).sort();

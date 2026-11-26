@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const input = accountActionSchema.safeParse(await readJson(request));
-    if (!input.success) throw new RequestError("Periksa kembali data yang kamu isi.");
+    if (!input.success) throw new RequestError("Check the information you entered.");
     const action = input.data;
 
     if (action.action === "logout") {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
     if (action.action === "register" || action.action === "login") {
       if (action.action === "register" && action.password !== action.confirmation) {
-        throw new RequestError("Konfirmasi password belum sama.");
+        throw new RequestError("Your passwords must match.");
       }
       const { account, token } = action.action === "register"
         ? await register(action.username, action.password)

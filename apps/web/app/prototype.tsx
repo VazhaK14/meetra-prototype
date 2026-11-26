@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
-  formatLabels, modeLabels,
+  formatLabels, languageLabels, levelLabels, modeLabels, scheduleLabels,
   type Format, type Member, type Mode, type Person, type Profile,
 } from "../lib/match";
+import { skillLabel } from "../lib/skills";
 import { emptyProfile, ProfileFields, profileError, profileSteps, SkillSuggestions } from "./profile-form";
 
 import { signedOutStore, type AccountAction, type LearningAction, type Recommendation, type RecommendationList, type Session, type Store } from "../lib/state";
@@ -12,14 +13,14 @@ import { signedOutStore, type AccountAction, type LearningAction, type Recommend
 type Screen = "welcome" | "login" | "signup" | "onboarding" | "home" | "preferences" | "mode" | "format" | "matching" | "result" | "recommendation-detail" | "pod-proposal" | "pod-declined" | "new-topic" | "study" | "feedback";
 
 const intents = [
-  { id: "offer", description: "Bagikan skill yang kamu kuasai." },
-  { id: "need", description: "Cari seseorang yang bisa membantumu belajar." },
-  { id: "exchange", description: "Ajarkan skillmu dan pelajari skill dari partner." },
+  { id: "offer", description: "Share a skill you know." },
+  { id: "need", description: "Find someone who can help you learn." },
+  { id: "exchange", description: "Teach your skill and learn one from your partner." },
 ] as const;
-const dateFormat = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" });
+const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 
 function MemberList({ members }: { members: Member[] }) {
-  if (!members.length) return <p>Belum ada anggota lain di Pod ini.</p>;
+  if (!members.length) return <p>There are no other members in this Pod yet.</p>;
   return (
     <ul className="member-list">
       {members.map((member) => (
@@ -35,16 +36,20 @@ function MemberList({ members }: { members: Member[] }) {
 function PersonDetails({ person }: { person: Person }) {
   return (
     <dl className="details">
-      <div><dt>Kampus</dt><dd>{person.campus}</dd></div>
-      <div><dt>Menawarkan</dt><dd>{person.offers} · {person.level}</dd></div>
-      <div><dt>Ingin belajar</dt><dd>{person.learns}</dd></div>
-      <div><dt>Waktu dan bahasa</dt><dd>{person.schedule} · {person.language}</dd></div>
+      <div><dt>Campus</dt><dd>{person.campus}</dd></div>
+      <div><dt>Teaches</dt><dd>{person.offers} · {levelLabels[person.level]}</dd></div>
+      <div><dt>Wants to learn</dt><dd>{person.learns}</dd></div>
+      <div><dt>Schedule and language</dt><dd>{scheduleLabels[person.schedule]} · {languageLabels[person.language]}</dd></div>
     </dl>
   );
 }
 
 function Buttons({ children }: { children: ReactNode }) {
   return <div className="actions">{children}</div>;
+}
+
+function BackButton({ to, onClick, disabled }: { to: string; onClick: () => void; disabled?: boolean }) {
+  return <button type="button" className="secondary" onClick={onClick} disabled={disabled}>Back to {to}</button>;
 }
 
 function recommendationName(item: Recommendation) {
@@ -58,8 +63,8 @@ function candidateId(item: Recommendation) {
 function RecommendationScore({ item }: { item: Recommendation }) {
   return (
     <p className="match-score">
-      <strong>Kecocokan {item.score}%</strong>
-      <span>{item.source === "gemini" ? "Pencocokan AI" : "Pencocokan demo"}</span>
+      <strong>{item.score}% match</strong>
+      <span>{item.source === "gemini" ? "AI matching" : "Demo matching"}</span>
     </p>
   );
 }
@@ -91,7 +96,7 @@ export function Prototype() {
     const controller = new AbortController();
     fetch("/api/account", { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
-        if (!response.ok) throw new Error("Gagal memuat akun");
+        if (!response.ok) throw new Error("Could not load the account");
         const saved = await response.json() as Store;
         if (controller.signal.aborted) return;
         setStore(saved);
@@ -159,13 +164,13 @@ export function Prototype() {
           setStore(signedOutStore);
           showAccount(signedOutStore);
         }
-        setError(data.error ?? "Perubahan belum tersimpan. Coba lagi.");
+        setError(data.error ?? "Your changes could not be saved. Try again.");
         return null;
       }
       setStore(data);
       return data;
     } catch {
-      setError("Meetra belum bisa memuat perubahan. Coba lagi.");
+      setError("Meetra could not save your changes. Try again.");
       return null;
     } finally {
       pendingRef.current = false;
@@ -210,14 +215,14 @@ export function Prototype() {
       setStep(step + 1);
     } else {
       go("home");
-      if (!onboarding) setMessage("Profil diperbarui.");
+      if (!onboarding) setMessage("Profile updated.");
     }
   }
 
   function cancelSearch() {
     requestRef.current?.abort();
     requestRef.current = null;
-    go("home");
+    go("format");
   }
 
   async function search(selectedFormat: Format, rejected: string[]) {
@@ -241,10 +246,10 @@ export function Prototype() {
       if (response.status === 401) {
         setStore(signedOutStore);
         showAccount(signedOutStore);
-        setError("Sesi login sudah berakhir. Masuk lagi untuk melanjutkan.");
+        setError("Your sign-in session expired. Sign in again to continue.");
         return;
       }
-      if (!response.ok) throw new Error("Pencarian gagal");
+      if (!response.ok) throw new Error("Search failed");
       const { items: recommendations } = await response.json() as RecommendationList;
       if (requestRef.current !== controller) return;
       const proposal = recommendations[0];
@@ -257,7 +262,7 @@ export function Prototype() {
       }
     } catch {
       if (requestRef.current !== controller) return;
-      setError("Pencarian belum berhasil. Coba lagi atau kembali ke beranda.");
+      setError("Search failed. Try again or go back to format selection.");
     } finally {
       if (requestRef.current === controller) requestRef.current = null;
     }
@@ -272,7 +277,7 @@ export function Prototype() {
   async function createTopic(event: FormEvent) {
     event.preventDefault();
     if (!topic.trim() || !topicGoal.trim() || !selected) {
-      setError("Isi judul dan tujuan topik Pod.");
+      setError("Enter a title and goal for the Pod.");
       return;
     }
     const next = await update("learning", { action: "new-topic", recommendationId: selected.recommendationId, title: topic, goal: topicGoal });
@@ -290,13 +295,13 @@ export function Prototype() {
   async function submitFeedback(event: FormEvent) {
     event.preventDefault();
     if (!store.active || !rating) {
-      setError("Pilih satu nilai relevansi.");
+      setError("Choose a relevance rating.");
       return;
     }
     const next = await update("learning", { action: "feedback", sessionId: store.active.id, rating, note });
     if (next) {
       go("home");
-      setMessage("Feedback tersimpan. Sesi masuk ke riwayat.");
+      setMessage("Feedback saved. You can find the session in your history.");
     }
   }
 
@@ -310,8 +315,20 @@ export function Prototype() {
   function skipRecommendation(item: Recommendation) {
     setExcludedIds([...excludedIds, candidateId(item)]);
     const lastExistingPod = item.kind === "existing" && visibleItems.length === 1;
+    if (lastExistingPod) {
+      setTopic("");
+      setTopicGoal("");
+    }
     setSelected(lastExistingPod ? item : null);
     go(lastExistingPod ? "pod-declined" : "result");
+  }
+
+  function returnToPodResults() {
+    if (selected?.kind === "existing") {
+      setExcludedIds(excludedIds.filter((id) => id !== selected.id));
+    }
+    setSelected(null);
+    go("result");
   }
 
   const active = store.active;
@@ -321,48 +338,48 @@ export function Prototype() {
   let content: ReactNode = null;
 
   if (loadError) {
-    title = "Meetra belum bisa dimuat";
-    content = <button onClick={() => window.location.reload()}>Coba lagi</button>;
+    title = "Meetra could not load";
+    content = <button onClick={() => window.location.reload()}>Try again</button>;
   } else if (!ready) {
-    title = "Memuat Meetra";
+    title = "Loading Meetra";
   } else if (screen === "welcome") {
-    title = "Temukan teman belajar";
+    title = "Find a study partner";
     content = (
       <>
-        <p className="intro">Belajar skill baru, berbagi yang kamu kuasai, atau bertukar skill dengan sesama mahasiswa.</p>
+        <p className="intro">Learn a new skill, share one you know, or exchange skills with other students.</p>
         <Buttons>
-          <button onClick={() => go("login")}>Masuk</button>
-          <button className="secondary" onClick={() => go("signup")}>Daftar</button>
+          <button onClick={() => go("login")}>Sign in</button>
+          <button className="secondary" onClick={() => go("signup")}>Sign up</button>
         </Buttons>
       </>
     );
   } else if (screen === "signup" || screen === "login") {
     const signingUp = screen === "signup";
-    title = signingUp ? "Buat akun" : "Masuk ke Meetra";
+    title = signingUp ? "Create account" : "Sign in to Meetra";
     content = (
       <form className="stack" key={screen} onSubmit={submitCredentials}>
         <label className="field">
           Username
           <input name="username" required minLength={3} maxLength={24} pattern="[A-Za-z0-9_]+" autoComplete="username" autoCapitalize="none" spellCheck={false} />
-          {signingUp && <span className="hint">3–24 karakter. Gunakan huruf, angka, atau garis bawah.</span>}
+          {signingUp && <span className="hint">Use 3–24 letters, numbers, or underscores.</span>}
         </label>
         <label className="field">
           Password
           <input name="password" type="password" required minLength={signingUp ? 8 : undefined} maxLength={128} autoComplete={signingUp ? "new-password" : "current-password"} />
-          {signingUp && <span className="hint">Minimal 8 karakter. Gunakan password khusus uji coba.</span>}
+          {signingUp && <span className="hint">Use a password of at least 8 characters created for this test.</span>}
         </label>
-        {signingUp && <label className="field">Konfirmasi password<input name="confirmation" type="password" required maxLength={128} autoComplete="new-password" /></label>}
+        {signingUp && <label className="field">Confirm password<input name="confirmation" type="password" required maxLength={128} autoComplete="new-password" /></label>}
         <Buttons>
-          <button disabled={pending} type="submit">{signingUp ? "Buat akun" : "Masuk"}</button>
-          <button disabled={pending} type="button" className="secondary" onClick={() => go(signingUp ? "login" : "signup")}>{signingUp ? "Sudah punya akun" : "Buat akun baru"}</button>
+          <button disabled={pending} type="submit">{signingUp ? "Create account" : "Sign in"}</button>
+          <button disabled={pending} type="button" className="secondary" onClick={() => go(signingUp ? "login" : "signup")}>{signingUp ? "I already have an account" : "Create an account"}</button>
         </Buttons>
-        <button disabled={pending} type="button" className="link-button" onClick={() => go("welcome")}>Kembali</button>
+        <BackButton to="welcome" disabled={pending} onClick={() => go("welcome")} />
       </form>
     );
   } else if (screen === "onboarding" || screen === "preferences") {
     const registering = screen === "onboarding";
-    title = registering ? profileSteps[step] : "Personalisasi";
-    context = registering ? `Profil belajar · Langkah ${step + 1} dari ${profileSteps.length}` : "Profil belajar";
+    title = registering ? profileSteps[step] : "Profile settings";
+    context = registering ? `Learning profile · Step ${step + 1} of ${profileSteps.length}` : "Learning profile";
     content = (
       <form className="stack" onSubmit={submitProfile}>
         <SkillSuggestions />
@@ -375,54 +392,55 @@ export function Prototype() {
             </fieldset>
           ))}
         <Buttons>
-          <button disabled={pending} type="submit">{registering && step < 3 ? "Lanjut" : "Simpan profil"}</button>
-          {(!registering || step > 0) && <button disabled={pending} type="button" className="secondary" onClick={() => {
-            if (registering) { setStep(step - 1); setError(""); }
-            else go("home");
-          }}>Kembali</button>}
+          <button disabled={pending} type="submit">{registering && step < 3 ? "Continue" : "Save profile"}</button>
+          {registering && step > 0 && <BackButton to={`step ${step}`} disabled={pending} onClick={() => {
+            setStep(step - 1);
+            setError("");
+          }} />}
+          {!registering && <BackButton to="home" disabled={pending} onClick={() => go("home")} />}
         </Buttons>
       </form>
     );
   } else if (screen === "home" && profile) {
-    title = `Halo, ${profile.alias}`;
+    title = `Hi, ${profile.alias}`;
     content = (
       <>
         <Buttons>
           <button disabled={Boolean(active)} aria-describedby={active ? "active-session-note" : undefined} onClick={() => go("mode")}>Matchmaking</button>
-          <button className="secondary" onClick={() => { setDraft(profile); go("preferences"); }}>Personalisasi</button>
+          <button className="secondary" onClick={() => { setDraft(profile); go("preferences"); }}>Profile settings</button>
         </Buttons>
         {message && <p className="notice" role="status">{message}</p>}
         <div className="home-sections">
           <section>
-            <h2>Sesi aktif</h2>
+            <h2>Active session</h2>
             {active ? (
               <div className="session-line">
                 <strong>{active.title}</strong>
-                <span>{(active.status === "feedback") ? "Menunggu feedback" : formatLabels[active.format]} · Simulasi</span>
-                <p id="active-session-note">Tuntaskan sesi ini untuk memulai pencarian baru.</p>
-                <button onClick={() => go((active.status === "feedback") ? "feedback" : "study")}>{(active.status === "feedback") ? "Isi feedback" : "Lanjutkan sesi"}</button>
+                <span>{(active.status === "feedback") ? "Feedback pending" : formatLabels[active.format]} · Simulation</span>
+                <p id="active-session-note">Finish this session to start a new search.</p>
+                <button onClick={() => go((active.status === "feedback") ? "feedback" : "study")}>{(active.status === "feedback") ? "Give feedback" : "Resume session"}</button>
               </div>
-            ) : <p>Belum ada sesi aktif.</p>}
+            ) : <p>You have no active session.</p>}
           </section>
           <section>
-            <h2>Riwayat</h2>
+            <h2>History</h2>
             {store.history.length ? (
               <ul className="history">
                 {store.history.map((session) => (
                   <li key={session.id}>
                     <strong>{session.title}</strong>
-                    <span>{dateFormat.format(new Date(session.completedAt))} · {formatLabels[session.format]} · Relevansi {session.feedback.rating}/5</span>
-                    <span>{session.source === "gemini" ? "Pencocokan AI" : session.source === "demo" ? "Pencocokan demo" : "Topik manual"} · Simulasi</span>
+                    <span>{dateFormat.format(new Date(session.completedAt))} · {formatLabels[session.format]} · Relevance {session.feedback.rating}/5</span>
+                    <span>{session.source === "gemini" ? "AI matching" : session.source === "demo" ? "Demo matching" : "Custom topic"} · Simulation</span>
                   </li>
                 ))}
               </ul>
-            ) : <p>Riwayat muncul setelah kamu mengirim feedback sesi.</p>}
+            ) : <p>Completed sessions appear here after you submit feedback.</p>}
           </section>
         </div>
       </>
     );
   } else if (screen === "mode") {
-    title = "Apa yang ingin kamu lakukan?";
+    title = "What would you like to do?";
     context = "Matchmaking";
     content = (
       <>
@@ -433,45 +451,48 @@ export function Prototype() {
             </button>
           ))}
         </div>
-        <button className="secondary" onClick={() => go("home")}>Kembali ke beranda</button>
+        <BackButton to="home" onClick={() => go("home")} />
       </>
     );
   } else if (screen === "format") {
-    title = "Pilih format belajar";
+    title = "Choose a study format";
     context = `Matchmaking · ${modeLabels[mode]}`;
     content = (
       <>
         <div className="options">
-          <button className="option" onClick={() => void search("pair", [])}><strong>1-on-1</strong><span>Belajar bersama satu partner.</span></button>
-          <button className="option" onClick={() => void search("pod", [])}><strong>Pod</strong><span>Belajar bersama beberapa mahasiswa.</span></button>
+          <button className="option" onClick={() => void search("pair", [])}><strong>1-on-1</strong><span>Study with one partner.</span></button>
+          <button className="option" onClick={() => void search("pod", [])}><strong>Pod</strong><span>Study with a small group of students.</span></button>
         </div>
-        <button className="secondary" onClick={() => go("mode")}>Kembali</button>
+        <BackButton to="matchmaking intent" onClick={() => go("mode")} />
       </>
     );
   } else if (screen === "matching") {
-    title = error ? "Pencarian terhenti" : format === "pair" ? "Mencari partner" : "Mencari Pod belajar";
+    title = error ? "Search interrupted" : format === "pair" ? "Finding a partner" : "Finding a Pod";
     context = `Matchmaking · ${modeLabels[mode]} · ${formatLabels[format]}`;
     content = error ? (
       <>
         <p role="alert">{error}</p>
-        <Buttons><button onClick={() => void search(format, excludedIds)}>Coba lagi</button><button className="secondary" onClick={cancelSearch}>Kembali ke beranda</button></Buttons>
+        <Buttons>
+          <button onClick={() => void search(format, excludedIds)}>Try again</button>
+          <BackButton to="format selection" onClick={cancelSearch} />
+        </Buttons>
       </>
     ) : (
       <>
-        <p role="status">Sedang mencocokkan skill, tujuan, dan preferensimu.</p>
-        <button className="secondary" onClick={cancelSearch}>Batalkan pencarian</button>
+        <p role="status">Matching your skills, goals, and preferences.</p>
+        <BackButton to="format selection" onClick={cancelSearch} />
       </>
     );
   } else if (screen === "result") {
     context = `Matchmaking · ${modeLabels[mode]} · ${formatLabels[format]}`;
-    title = format === "pair" ? "Rekomendasi partner"
-      : visibleItems.length ? "Pilih Pod untuk bergabung" : "Belum ada Pod yang cocok";
+    title = format === "pair" ? "Partner recommendations"
+      : visibleItems.length ? "Choose a Pod to join" : "No matching Pods";
     const canRetry = format === "pair" && items.length > 0 && visibleItems.length === 0;
     content = (
       <>
         {visibleItems.length ? (
           <>
-            <p className="hint">Persentase memperkirakan kecocokan profil berdasarkan skill, level, jadwal, dan bahasa.</p>
+            <p className="hint">Match percentages estimate how well your skills, levels, schedules, and languages align.</p>
             <ul className="recommendations" role="list">
               {visibleItems.map((item) => (
                 <li key={item.recommendationId} className="recommendation">
@@ -479,67 +500,67 @@ export function Prototype() {
                     <div>
                       <h2>{recommendationName(item)}</h2>
                       {item.kind === "partner"
-                        ? <p className="hint">Mengajar {item.person.offers} · Belajar {item.person.learns}</p>
+                        ? <p className="hint">Teaches {item.person.offers} · Wants to learn {item.person.learns}</p>
                         : <p className="hint">{item.topic}</p>}
                     </div>
                     <RecommendationScore item={item} />
                   </div>
                   <p>{item.reason}</p>
                   <Buttons>
-                    <button className="secondary" aria-label={`Lihat detail ${recommendationName(item)}`} onClick={() => openRecommendation(item)}>Lihat detail</button>
-                    <button className="link-button" aria-label={`Lewati ${recommendationName(item)}`} onClick={() => skipRecommendation(item)}>Lewati</button>
+                    <button className="secondary" aria-label={`View details ${recommendationName(item)}`} onClick={() => openRecommendation(item)}>View details</button>
+                    <button className="link-button" aria-label={`Skip ${recommendationName(item)}`} onClick={() => skipRecommendation(item)}>Skip</button>
                   </Buttons>
                 </li>
               ))}
             </ul>
           </>
-        ) : <p role="status">{items.length ? "Semua pilihan sudah dilewati." : format === "pair" ? "Belum ada partner yang cocok." : "Meetra belum menemukan cukup anggota untuk membentuk Pod baru."}</p>}
+        ) : <p role="status">{items.length ? "You skipped all the recommendations." : format === "pair" ? "Meetra could not find a matching partner." : "Meetra could not find enough members to form a new Pod."}</p>}
         <Buttons>
-          {canRetry && <button onClick={() => void search("pair", excludedIds)}>Cari partner lain</button>}
-          <button className="secondary" onClick={() => go("home")}>Kembali ke beranda</button>
+          {canRetry && <button onClick={() => void search("pair", excludedIds)}>Find other partners</button>}
+          <BackButton to="format selection" onClick={() => go("format")} />
         </Buttons>
       </>
     );
   } else if (screen === "recommendation-detail" && selected && selected.kind !== "new") {
     context = `Matchmaking · ${modeLabels[mode]} · ${formatLabels[format]}`;
-    title = selected.kind === "partner" ? `Kenali ${selected.person.name}` : selected.title;
-    const primaryAction = selected.kind === "partner" ? "Terima" : "Bergabung";
+    title = selected.kind === "partner" ? `Meet ${selected.person.name}` : selected.title;
+    const primaryAction = selected.kind === "partner" ? "Accept" : "Join";
     content = (
       <>
         <RecommendationScore item={selected} />
         {selected.kind === "partner" ? (
           <>
-            <p className="hint">Profil partner simulasi</p>
+            <p className="hint">Simulated partner profile</p>
             <PersonDetails person={selected.person} />
           </>
         ) : (
           <>
-            <p className="hint">Pod simulasi yang sudah ada</p>
+            <p className="hint">Existing simulated Pod</p>
             <dl className="details">
               <div><dt>Skill</dt><dd>{selected.topic}</dd></div>
-              <div><dt>Tujuan Pod</dt><dd>{selected.goal}</dd></div>
-              <div><dt>Peranmu</dt><dd>{mode === "offer" ? "Mentor tambahan" : "Mentee"}</dd></div>
+              <div><dt>Pod goal</dt><dd>{selected.goal}</dd></div>
+              <div><dt>Your role</dt><dd>{mode === "offer" ? "Additional mentor" : "Mentee"}</dd></div>
             </dl>
-            <h2>Anggota Pod</h2>
+            <h2>Pod members</h2>
             <MemberList members={selected.members} />
           </>
         )}
-        <div className="reason"><h2>Alasan rekomendasi</h2><p>{selected.reason}</p></div>
+        <div className="reason"><h2>Why this was recommended</h2><p>{selected.reason}</p></div>
         <Buttons>
           <button disabled={pending} onClick={startSession}>{primaryAction}</button>
-          <button disabled={pending} className="secondary" onClick={() => go("result")}>Kembali ke daftar</button>
-          <button disabled={pending} className="link-button" onClick={() => skipRecommendation(selected)}>Lewati</button>
+          <BackButton to="results" disabled={pending} onClick={() => go("result")} />
+          <button disabled={pending} className="link-button" onClick={() => skipRecommendation(selected)}>Skip</button>
         </Buttons>
       </>
     );
   } else if (screen === "pod-proposal" && selected?.kind === "new") {
-    title = "Bentuk Pod baru";
+    title = "Form a new Pod";
     context = `Matchmaking · ${modeLabels[mode]} · Pod`;
     content = (
       <>
         <p>{excludedIds.length
-          ? "Tidak ada Pod relevan lain setelah pilihan sebelumnya dilewati. Meetra menemukan calon anggota untuk Pod baru."
-          : `Belum ada Pod yang cocok untuk ${selected.topic}. Meetra menemukan calon anggota untuk membentuk Pod baru.`}</p>
+          ? "Meetra found potential members for a new Pod after you skipped the existing options."
+          : `Meetra found potential members for a new Pod focused on ${skillLabel(selected.topic)}.`}</p>
         <section className="pod-proposal" aria-labelledby="pod-proposal-name">
           <header className="pod-proposal-header">
             <div>
@@ -549,72 +570,72 @@ export function Prototype() {
             <RecommendationScore item={selected} />
           </header>
           <div className="pod-proposal-body">
-            <p className="pod-proposal-role">Peranmu <strong>{mode === "offer" ? "Mentor" : "Mentee"}</strong></p>
+            <p className="pod-proposal-role">Your role <strong>{mode === "offer" ? "Mentor" : "Mentee"}</strong></p>
             <div>
-              <h3>Calon anggota</h3>
+              <h3>Potential members</h3>
               <MemberList members={selected.members} />
             </div>
             <div>
-              <h3>Alasan rekomendasi</h3>
+              <h3>Why this was recommended</h3>
               <p>{selected.reason}</p>
             </div>
           </div>
         </section>
         <Buttons>
-          <button disabled={pending} onClick={startSession}>Buat Pod dan mulai sesi</button>
-          <button disabled={pending} className="secondary" onClick={() => go("home")}>Kembali ke beranda</button>
+          <button disabled={pending} onClick={startSession}>Create Pod and start session</button>
+          <BackButton to="format selection" disabled={pending} onClick={() => go("format")} />
         </Buttons>
       </>
     );
   } else if (screen === "pod-declined") {
-    title = mode === "offer" ? "Buat topik Pod baru?" : "Cari Pod lain?";
+    title = mode === "offer" ? "Create a new Pod topic?" : "Look for another Pod?";
     context = `Matchmaking · ${modeLabels[mode]} · Pod`;
     content = (
       <Buttons>
         {mode === "offer"
-          ? <button onClick={() => { setTopic(""); setTopicGoal(""); go("new-topic"); }}>Buat topik baru</button>
-          : <button onClick={() => void search("pod", excludedIds)}>Cari lagi</button>}
-        <button className="secondary" onClick={() => go("home")}>Kembali ke beranda</button>
+          ? <button onClick={() => go("new-topic")}>Create a new topic</button>
+          : <button onClick={() => void search("pod", excludedIds)}>Search again</button>}
+        <BackButton to="results" onClick={returnToPodResults} />
       </Buttons>
     );
   } else if (screen === "new-topic") {
-    title = "Buat topik Pod";
+    title = "Create a Pod topic";
     context = `Matchmaking · Offer · ${profile?.offeredSkill}`;
     content = (
       <form className="stack" onSubmit={createTopic}>
-        <label className="field">Judul topik<input required maxLength={60} value={topic} onChange={(event) => setTopic(event.target.value)} /></label>
-        <label className="field">Tujuan Pod<textarea required maxLength={300} rows={4} value={topicGoal} onChange={(event) => setTopicGoal(event.target.value)} /></label>
+        <label className="field">Topic title<input required maxLength={60} value={topic} onChange={(event) => setTopic(event.target.value)} /></label>
+        <label className="field">Pod goal<textarea required maxLength={300} rows={4} value={topicGoal} onChange={(event) => setTopicGoal(event.target.value)} /></label>
         <Buttons>
-          <button disabled={pending} type="submit">Buat Pod dan mulai sesi</button>
-          <button disabled={pending} type="button" className="secondary" onClick={() => go("home")}>Kembali ke beranda</button>
+          <button disabled={pending} type="submit">Create Pod and start session</button>
+          <BackButton to="Pod options" disabled={pending} onClick={() => go("pod-declined")} />
         </Buttons>
       </form>
     );
   } else if (screen === "study" && active) {
     title = active.title;
-    context = `Simulasi sesi · ${formatLabels[active.format]}`;
+    context = `Simulated session · ${formatLabels[active.format]}`;
     content = (
       <>
         <dl className="details">
-          <div><dt>Topik belajar</dt><dd>{active.topic}</dd></div>
-          {!!active.role && <div><dt>Peranmu</dt><dd>{active.role}</dd></div>}
-          <div><dt>Tujuan sesi</dt><dd>{active.goal}</dd></div>
+          <div><dt>Study topic</dt><dd>{active.topic}</dd></div>
+          {!!active.role && <div><dt>Your role</dt><dd>{active.role}</dd></div>}
+          <div><dt>Session goal</dt><dd>{active.goal}</dd></div>
         </dl>
-        {active.members && <><h2>Anggota Pod</h2><MemberList members={active.members} /></>}
+        {active.members && <><h2>Pod members</h2><MemberList members={active.members} /></>}
         {active.person && <PersonDetails person={active.person} />}
         <Buttons>
-          <button disabled={pending} onClick={() => openFeedback(active)}>Selesaikan sesi</button>
-          <button disabled={pending} className="secondary" onClick={() => go("home")}>Kembali ke beranda</button>
+          <button disabled={pending} onClick={() => openFeedback(active)}>Finish session</button>
+          <BackButton to="home" disabled={pending} onClick={() => go("home")} />
         </Buttons>
       </>
     );
   } else if (screen === "feedback" && active) {
-    title = active.format === "pair" ? "Feedback untuk partner" : "Feedback untuk Pod";
+    title = active.format === "pair" ? "Partner feedback" : "Pod feedback";
     context = active.title;
     content = (
       <form className="stack" onSubmit={submitFeedback}>
         <fieldset className="rating">
-          <legend>{active.source === "manual" ? "Seberapa relevan sesi ini dengan tujuan Pod?" : "Seberapa relevan rekomendasi ini dengan tujuan sesi?"}</legend>
+          <legend>{active.source === "manual" ? "How relevant was this session to the Pod’s goal?" : "How relevant was this recommendation to your session goal?"}</legend>
           <div className="rating-options">
             {[1, 2, 3, 4, 5].map((value) => (
               <label key={value}>
@@ -623,12 +644,12 @@ export function Prototype() {
               </label>
             ))}
           </div>
-          <span className="hint">1 = Tidak relevan, 5 = Sangat relevan</span>
+          <span className="hint">1 = No relevance, 5 = Very relevant</span>
         </fieldset>
-        <label className="field">Komentar (opsional)<textarea rows={3} maxLength={300} value={note} onChange={(event) => setNote(event.target.value)} /></label>
+        <label className="field">Comment (optional)<textarea rows={3} maxLength={300} value={note} onChange={(event) => setNote(event.target.value)} /></label>
         <Buttons>
-          <button disabled={pending} type="submit">Kirim feedback</button>
-          <button disabled={pending} type="button" className="secondary" onClick={() => go("home")}>Kembali ke beranda</button>
+          <button disabled={pending} type="submit">Submit feedback</button>
+          <BackButton to="home" disabled={pending} onClick={() => go("home")} />
         </Buttons>
       </form>
     );
@@ -640,8 +661,8 @@ export function Prototype() {
         <div className="header-inner">
           <span className="wordmark">Meetra</span>
           {store.account
-            ? <div className="account-menu"><span>@{store.account.username}</span><button disabled={pending} className="link-button" onClick={signOut}>Keluar</button></div>
-            : <span className="header-note">Prototipe uji coba</span>}
+            ? <div className="account-menu"><span>@{store.account.username}</span><button disabled={pending} className="link-button" onClick={signOut}>Sign out</button></div>
+            : <span className="header-note">Test prototype</span>}
         </div>
       </header>
       <main className={screen === "welcome" ? "main welcome" : "main"}>
@@ -649,13 +670,12 @@ export function Prototype() {
         <h1 ref={headingRef} tabIndex={-1}>{title}</h1>
         <div className="content">
           {error && screen !== "matching" && <p className="notice" role="alert">{error}</p>}
-          {pending && <p className="hint" role="status">Memproses permintaan…</p>}
+          {pending && <p className="hint" role="status">Working…</p>}
           {content}
-          {error && screen === "recommendation-detail" && <button className="secondary" onClick={() => go("home")}>Kembali ke beranda</button>}
         </div>
       </main>
       <footer className="site-footer">
-        <p>Kandidat dan anggota Pod adalah akun dummy. Sesi belajar disimulasikan.</p>
+        <p>Recommended partners and Pod members are fictional. Study sessions are simulated.</p>
       </footer>
     </>
   );

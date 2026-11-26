@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const account = await requireAccount(request);
     const input = learningActionSchema.safeParse(await readJson(request));
-    if (!input.success) throw new RequestError("Periksa kembali data sesi.");
+    if (!input.success) throw new RequestError("Check the session information you entered.");
     return accountResponse(request, await dashboard(await updateLearning(account, input.data)));
   } catch (error) {
     return fail(error);

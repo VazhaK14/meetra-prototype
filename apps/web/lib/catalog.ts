@@ -1,5 +1,6 @@
 import { db } from "./db";
 import type { Member, Person } from "./match";
+import { skillLabel } from "./skills";
 
 export type Pod = {
   id: string;
@@ -11,6 +12,21 @@ export type Pod = {
 };
 
 export type Catalog = { people: Person[]; pods: Pod[] };
+
+const podTitles = new Map([
+  ["Dasar Prototipe Figma", "Figma Prototyping Basics"],
+  ["Latihan Desain Aplikasi", "App Design Practice"],
+  ["Latihan Presentasi Kampus", "Campus Presentation Practice"],
+]);
+
+export function podTitleLabel(title: string, topic: string) {
+  if (title === `Pod belajar ${topic}`) return `${skillLabel(topic)} Study Pod`;
+  return podTitles.get(title) ?? title;
+}
+
+export function catalogPersonLabel<T extends Person>(person: T): T {
+  return { ...person, offers: skillLabel(person.offers), learns: skillLabel(person.learns) };
+}
 
 export async function readCatalog(): Promise<Catalog> {
   const [profiles, pods] = await Promise.all([
@@ -30,5 +46,17 @@ export async function readCatalog(): Promise<Catalog> {
       ORDER BY p.id
     `),
   ]);
-  return { people: profiles.rows.map(({ person }) => person), pods: pods.rows };
+  return {
+    people: profiles.rows.map(({ person }) => catalogPersonLabel(person)),
+    pods: pods.rows.map((pod) => {
+      const topic = skillLabel(pod.topic);
+      return {
+        ...pod,
+        title: podTitleLabel(pod.title, pod.topic),
+        topic,
+        goal: pod.goal === `Berlatih ${pod.topic} bersama anggota Pod.` ? `Practice ${topic} with the Pod.` : pod.goal,
+        members: pod.members.map(catalogPersonLabel),
+      };
+    }),
+  };
 }
