@@ -30,22 +30,16 @@ h2 { font-size: 1.125rem; line-height: 1.35; }
 ::selection { color: var(--paper); background: var(--ink); }
 
 .site-header { border-bottom: 1px solid var(--ink); }
-.header-inner, .site-footer {
+.header-inner {
   width: min(100% - 2.5rem, 65rem);
   margin-inline: auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: .75rem 1.5rem;
+  min-height: 4.25rem;
 }
-.header-inner { min-height: 4.25rem; }
 .wordmark { flex-shrink: 0; white-space: nowrap; font-size: 1.65rem; font-weight: 800; letter-spacing: -.06em; }
-.header-note, .site-footer { font-size: .875rem; }
-.site-footer {
-  flex-wrap: wrap;
-  border-top: 1px solid var(--ink);
-  padding-block: 1rem;
-}
 
 .main {
   width: min(100% - 2.5rem, 43rem);

@@ -35,7 +35,7 @@ function MemberList({ members, contacts }: { members: Member[]; contacts?: Recom
             <div>
               <strong>{member.name}</strong>
               {member.campus && <span>{member.campus}</span>}
-              {contact && <span className="member-contact">{member.participant ? "" : "Demo "}{contactLabel(contact)} {contact}</span>}
+              {contact && <span className="member-contact">{contactLabel(contact)} {contact}</span>}
             </div>
             <span>{roleLabel(member.role)}</span>
           </li>
@@ -52,7 +52,7 @@ function PersonDetails({ person, contact }: { person: Person; contact?: string }
       <div><dt>Teaches</dt><dd>{person.offers} · {levelLabels[person.level]}</dd></div>
       <div><dt>Wants to learn</dt><dd>{person.learns}</dd></div>
       <div><dt>Schedule and language</dt><dd>{scheduleLabels[person.schedule]} · {languageLabels[person.language]}</dd></div>
-      {contact && <div><dt>{person.participant ? "" : "Demo "}{contactLabel(contact)}</dt><dd>{contact}</dd></div>}
+      {contact && <div><dt>{contactLabel(contact)}</dt><dd>{contact}</dd></div>}
     </dl>
   );
 }
@@ -73,17 +73,17 @@ function candidateId(item: Recommendation) {
   return item.kind === "partner" ? item.person.id : item.id;
 }
 
-function matchingLabel({ source, person, members }: Pick<Session, "source" | "person" | "members">) {
+function matchingLabel(source: Session["source"]) {
   if (source === "gemini") return "AI matching";
   if (source === "manual") return "Custom topic";
-  return person?.participant || members?.some((member) => member.participant) ? "Profile matching" : "Demo matching";
+  return "Profile matching";
 }
 
 function RecommendationScore({ item }: { item: Recommendation }) {
   return (
     <p className="match-score">
       <strong>{item.score}% match</strong>
-      <span>{matchingLabel(item)}</span>
+      <span>{matchingLabel(item.source)}</span>
     </p>
   );
 }
@@ -476,7 +476,7 @@ export function Prototype() {
                   <li key={session.id}>
                     <strong>{session.title}</strong>
                     <span>{dateFormat.format(new Date(session.completedAt))} · {formatLabels[session.format]} · Relevance {session.feedback.rating}/5</span>
-                    <span>{matchingLabel(session)} · Simulation</span>
+                    <span>{matchingLabel(session.source)} · Simulation</span>
                   </li>
                 ))}
               </ul>
@@ -575,10 +575,7 @@ export function Prototype() {
       <>
         <RecommendationScore item={selected} />
         {selected.kind === "partner" ? (
-          <>
-            {!selected.person.participant && <p className="hint">Demo partner profile</p>}
-            <PersonDetails person={selected.person} contact={details?.contacts?.[selected.person.id]} />
-          </>
+          <PersonDetails person={selected.person} contact={details?.contacts?.[selected.person.id]} />
         ) : (
           <>
             <p className="hint">Existing Pod</p>
@@ -706,9 +703,7 @@ export function Prototype() {
       <header className="site-header">
         <div className="header-inner">
           <span className="wordmark">Meetra</span>
-          {store.account
-            ? <div className="account-menu"><span>@{store.account.username}</span><button disabled={pending} className="link-button" onClick={signOut}>Sign out</button></div>
-            : <span className="header-note">Test prototype</span>}
+          {store.account && <div className="account-menu"><span>@{store.account.username}</span><button disabled={pending} className="link-button" onClick={signOut}>Sign out</button></div>}
         </div>
       </header>
       <main className={screen === "welcome" ? "main welcome" : "main"}>
@@ -721,9 +716,6 @@ export function Prototype() {
           {content}
         </div>
       </main>
-      <footer className="site-footer">
-        <p>Recommendations can include participants and demo profiles. Study sessions are simulated.</p>
-      </footer>
     </>
   );
 }
