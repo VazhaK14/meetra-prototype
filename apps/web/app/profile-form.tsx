@@ -1,5 +1,5 @@
+import { contactError, contactSchema } from "../lib/contact";
 import { languageLabels, languages, levelLabels, levels, scheduleLabels, schedules, type Profile } from "../lib/match";
-
 import { skillSuggestions } from "../lib/skills";
 
 export const profileSteps = [
@@ -93,6 +93,12 @@ export function ProfileFields({ step, profile, change }: Props) {
         <Select label="Preferred schedule" options={schedules} labels={scheduleLabels} value={profile.schedule} change={(value) => change("schedule", value)} />
         <Select label="Study language" options={languages} labels={languageLabels} value={profile.language} change={(value) => change("language", value)} />
       </div>
+      <label className="field">
+        Instagram or WhatsApp (optional)
+        <input maxLength={48} value={profile.contact ?? ""} onChange={(event) => change("contact", event.target.value)}
+          placeholder="@username or +62…" autoComplete="off" autoCapitalize="none" spellCheck={false} aria-describedby="contact-visibility" />
+      </label>
+      <p className="hint" id="contact-visibility">Saving your completed profile makes it eligible for matching. If you add a contact, people who see you in a recommendation can view it.</p>
     </>
   );
 }
@@ -105,5 +111,6 @@ export function profileError(profile: Profile, step?: number) {
   }
   if ((step === undefined || step === 2) && !profile.goal.trim()) return "Enter your learning goal.";
   if ((step === undefined || step === 3) && !profile.alias.trim()) return "Enter an alias for your profile.";
+  if ((step === undefined || step === 3) && !contactSchema.safeParse(profile.contact ?? "").success) return contactError;
   return "";
 }

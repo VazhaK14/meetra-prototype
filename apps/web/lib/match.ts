@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { contactSchema } from "./contact";
 
 export const levels = ["Pemula", "Menengah", "Mahir"] as const;
 export const schedules = ["Fleksibel", "Hari kerja", "Akhir pekan"] as const;
@@ -22,6 +23,7 @@ const matchProfileSchema = z.object({
 
 export const profileSchema = matchProfileSchema.extend({
   alias: z.string().trim().min(1).max(32),
+  contact: contactSchema.optional(),
 });
 
 const feedbackSignalSchema = z.object({
@@ -39,7 +41,7 @@ export const searchSchema = z.object({
 });
 
 export type Profile = z.infer<typeof profileSchema>;
-export type MatchRequest = z.infer<typeof searchSchema> & { profile: Omit<Profile, "alias">; feedback: FeedbackSignal[] };
+export type MatchRequest = z.infer<typeof searchSchema> & { profile: z.infer<typeof matchProfileSchema>; feedback: FeedbackSignal[] };
 export type Mode = MatchRequest["mode"];
 export type Format = MatchRequest["format"];
 export type FeedbackSignal = z.infer<typeof feedbackSignalSchema>;
@@ -47,7 +49,8 @@ export type FeedbackSignal = z.infer<typeof feedbackSignalSchema>;
 export type Person = {
   id: string;
   name: string;
-  campus: string;
+  campus?: string;
+  participant?: true;
   offers: string;
   level: (typeof levels)[number];
   learns: string;
@@ -55,7 +58,7 @@ export type Person = {
   language: (typeof languages)[number];
 };
 
-export type Member = Person & { role: "Mentor" | "Mentee" };
+export type Member = Person & { role: "Mentor" | "Mentee" | "Mentor tambahan" };
 
 export type MatchResult = { source: "gemini" | "demo" } & (
   | { kind: "partner"; person: Person; topic: string; reason: string }

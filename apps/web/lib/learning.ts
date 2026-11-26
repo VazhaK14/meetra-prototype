@@ -75,6 +75,7 @@ export async function saveOnboarding(accountId: string, step: number, input: unk
     if (onboardingStep === 4 && !profileSchema.safeParse(draft).success) {
       throw new RequestError("Complete your profile before continuing.");
     }
+    if (onboardingStep === 4) draft.matchingEnabled = true;
     await client.query("UPDATE accounts SET profile = $2, onboarding_step = $3 WHERE id = $1", [accountId, draft, onboardingStep]);
     return { ...fresh, draft, onboardingStep };
   });
@@ -83,8 +84,9 @@ export async function saveOnboarding(accountId: string, step: number, input: unk
 export async function saveProfile(account: Account, profile: Profile) {
   if (account.onboardingStep !== 4) throw new RequestError("Finish setting up your profile first.", 409);
   validateLevels(profile);
-  await db().query("UPDATE accounts SET profile = $2 WHERE id = $1", [account.id, profile]);
-  return { ...account, draft: profile };
+  const draft = { ...profile, matchingEnabled: true as const };
+  await db().query("UPDATE accounts SET profile = $2 WHERE id = $1", [account.id, draft]);
+  return { ...account, draft };
 }
 
 export async function recentFeedback(accountId: string) {

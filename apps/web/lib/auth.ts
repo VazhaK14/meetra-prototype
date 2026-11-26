@@ -14,7 +14,7 @@ export type Account = {
   id: string;
   username: string;
   onboardingStep: number;
-  draft: Partial<Profile>;
+  draft: Partial<Profile> & { matchingEnabled?: true };
 };
 
 const accountFields = 'a.id, a.username, a.onboarding_step AS "onboardingStep", a.profile AS draft';

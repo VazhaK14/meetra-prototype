@@ -108,7 +108,7 @@ function podMatch(request: MatchRequest, pod: Pod, kind: "existing" | "new", sou
   if (!topicFit) return;
 
   const scores = pod.members.flatMap((member) => {
-    if (member.role !== (offer ? "Mentee" : "Mentor")) return [];
+    if ((member.role === "Mentee") !== offer) return [];
     const skill = Math.min(topicFit, skillSimilarity(topic, offer ? member.learns : member.offers, source));
     return skill
       ? [matchScore(request.profile, skill, kind === "new" ? member.schedule : pod.schedule, member.language, offer ? undefined : member.level)]
@@ -145,7 +145,7 @@ function newPod(request: MatchRequest, members: Member[], source: Source, reason
   }, "new", source, reason);
 }
 
-function demoNewPod(request: MatchRequest, { mentors, mentees }: Choices) {
+function localNewPod(request: MatchRequest, { mentors, mentees }: Choices) {
   const topic = mainTopic(request);
   const rank = (people: Person[], teaches: boolean) => people
     .filter((person) => skillSimilarity(topic, teaches ? person.offers : person.learns, "demo") > 0)
@@ -260,7 +260,11 @@ function candidateId(match: ScoredMatch) {
 
 export async function recommend(request: MatchRequest, catalog: Catalog): Promise<ScoredMatch[]> {
   const choices = availableChoices(request, catalog);
-  const candidates = await scoredGemini(request, choices);
+  const demoPeople = catalog.people.filter((person) => !person.participant);
+  const demoPods = catalog.pods.map((pod) => ({ ...pod, members: pod.members.filter((member) => !member.participant) }));
+  const demoIds = new Set([...demoPeople, ...demoPods].map(({ id }) => id));
+  const aiRequest = { ...request, feedback: request.feedback.filter(({ candidateId }) => candidateId && demoIds.has(candidateId)) };
+  const candidates = await scoredGemini(aiRequest, availableChoices(aiRequest, { people: demoPeople, pods: demoPods }));
   const byId = new Map(candidates.filter((match) => match.kind !== "new").map((match) => [candidateId(match), match]));
 
   if (request.format === "pair") {
@@ -271,12 +275,16 @@ export async function recommend(request: MatchRequest, catalog: Catalog): Promis
     }
   } else {
     for (const pod of choices.existingPods) {
-      if (byId.has(pod.id)) continue;
-      const match = podMatch(request, pod, "existing", "demo", `This Pod focuses on ${pod.topic}, the skill you selected.`);
+      const aiMatch = byId.get(pod.id);
+      const match = aiMatch?.kind === "existing"
+        ? { ...aiMatch, members: pod.members }
+        : podMatch(request, pod, "existing", "demo", `This Pod focuses on ${pod.topic}, the skill you selected.`);
       if (match) byId.set(pod.id, match);
     }
     if (!byId.size) {
-      const match = candidates.find((candidate) => candidate.kind === "new") ?? demoNewPod(request, choices);
+      const localPod = localNewPod(request, choices);
+      const aiPod = candidates.find((candidate) => candidate.kind === "new");
+      const match = localPod?.kind === "new" && localPod.members.some((member) => member.participant) ? localPod : aiPod ?? localPod;
       if (match) return [{ ...match, score: Math.round(match.score) }];
     }
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { contactLabel } from "../lib/contact";
 import {
   formatLabels, languageLabels, levelLabels, modeLabels, scheduleLabels,
   type Format, type Member, type Mode, type Person, type Profile,
@@ -8,7 +9,7 @@ import {
 import { skillLabel } from "../lib/skills";
 import { emptyProfile, ProfileFields, profileError, profileSteps, SkillSuggestions } from "./profile-form";
 
-import { signedOutStore, type AccountAction, type LearningAction, type Recommendation, type RecommendationList, type Session, type Store } from "../lib/state";
+import { signedOutStore, type AccountAction, type LearningAction, type Recommendation, type RecommendationContacts, type RecommendationList, type Session, type Store } from "../lib/state";
 
 type Screen = "welcome" | "login" | "signup" | "onboarding" | "home" | "preferences" | "mode" | "format" | "matching" | "result" | "recommendation-detail" | "pod-proposal" | "pod-declined" | "new-topic" | "study" | "feedback";
 
@@ -19,27 +20,39 @@ const intents = [
 ] as const;
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 
-function MemberList({ members }: { members: Member[] }) {
+function roleLabel(role: Member["role"]) {
+  return role === "Mentor tambahan" ? "Additional mentor" : role;
+}
+
+function MemberList({ members, contacts }: { members: Member[]; contacts?: RecommendationContacts }) {
   if (!members.length) return <p>There are no other members in this Pod yet.</p>;
   return (
     <ul className="member-list">
-      {members.map((member) => (
-        <li key={member.id}>
-          <div><strong>{member.name}</strong><span>{member.campus}</span></div>
-          <span>{member.role}</span>
-        </li>
-      ))}
+      {members.map((member) => {
+        const contact = contacts?.[member.id];
+        return (
+          <li key={member.id}>
+            <div>
+              <strong>{member.name}</strong>
+              {member.campus && <span>{member.campus}</span>}
+              {contact && <span className="member-contact">{contactLabel(contact)} {contact}</span>}
+            </div>
+            <span>{roleLabel(member.role)}</span>
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
-function PersonDetails({ person }: { person: Person }) {
+function PersonDetails({ person, contact }: { person: Person; contact?: string }) {
   return (
     <dl className="details">
-      <div><dt>Campus</dt><dd>{person.campus}</dd></div>
+      {person.campus && <div><dt>Campus</dt><dd>{person.campus}</dd></div>}
       <div><dt>Teaches</dt><dd>{person.offers} · {levelLabels[person.level]}</dd></div>
       <div><dt>Wants to learn</dt><dd>{person.learns}</dd></div>
       <div><dt>Schedule and language</dt><dd>{scheduleLabels[person.schedule]} · {languageLabels[person.language]}</dd></div>
+      {contact && <div><dt>{contactLabel(contact)}</dt><dd>{contact}</dd></div>}
     </dl>
   );
 }
@@ -60,11 +73,17 @@ function candidateId(item: Recommendation) {
   return item.kind === "partner" ? item.person.id : item.id;
 }
 
+function matchingLabel({ source, person, members }: Pick<Session, "source" | "person" | "members">) {
+  if (source === "gemini") return "AI matching";
+  if (source === "manual") return "Custom topic";
+  return person?.participant || members?.some((member) => member.participant) ? "Profile matching" : "Demo matching";
+}
+
 function RecommendationScore({ item }: { item: Recommendation }) {
   return (
     <p className="match-score">
       <strong>{item.score}% match</strong>
-      <span>{item.source === "gemini" ? "AI matching" : "Demo matching"}</span>
+      <span>{matchingLabel(item)}</span>
     </p>
   );
 }
@@ -79,6 +98,11 @@ export function Prototype() {
   const [format, setFormat] = useState<Format>("pair");
   const [items, setItems] = useState<Recommendation[]>([]);
   const [selected, setSelected] = useState<Recommendation | null>(null);
+  const [contactDetails, setContactDetails] = useState<{
+    recommendationId: string;
+    contacts?: RecommendationContacts;
+    error?: string;
+  } | null>(null);
   const [excludedIds, setExcludedIds] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -91,6 +115,27 @@ export function Prototype() {
   const [topicGoal, setTopicGoal] = useState("");
   const requestRef = useRef<AbortController | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const contactRecommendationId = screen === "recommendation-detail" || screen === "pod-proposal"
+    ? selected?.recommendationId : undefined;
+  const details = contactDetails?.recommendationId === contactRecommendationId ? contactDetails : null;
+
+  useEffect(() => {
+    if (!contactRecommendationId) return;
+    const controller = new AbortController();
+    fetch(`/api/match/contacts?recommendationId=${contactRecommendationId}`, { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Could not load contact details");
+        const contacts = await response.json() as RecommendationContacts;
+        if (!controller.signal.aborted) setContactDetails({ recommendationId: contactRecommendationId, contacts });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setContactDetails({
+          recommendationId: contactRecommendationId,
+          error: "Could not load contact details. Reopen this recommendation to try again.",
+        });
+      });
+    return () => controller.abort();
+  }, [contactRecommendationId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -122,6 +167,7 @@ export function Prototype() {
   function go(next: Screen) {
     setError("");
     setMessage("");
+    setContactDetails(null);
     setScreen(next);
   }
 
@@ -430,7 +476,7 @@ export function Prototype() {
                   <li key={session.id}>
                     <strong>{session.title}</strong>
                     <span>{dateFormat.format(new Date(session.completedAt))} · {formatLabels[session.format]} · Relevance {session.feedback.rating}/5</span>
-                    <span>{session.source === "gemini" ? "AI matching" : session.source === "demo" ? "Demo matching" : "Custom topic"} · Simulation</span>
+                    <span>{matchingLabel(session)} · Simulation</span>
                   </li>
                 ))}
               </ul>
@@ -530,19 +576,19 @@ export function Prototype() {
         <RecommendationScore item={selected} />
         {selected.kind === "partner" ? (
           <>
-            <p className="hint">Simulated partner profile</p>
-            <PersonDetails person={selected.person} />
+            {!selected.person.participant && <p className="hint">Demo partner profile</p>}
+            <PersonDetails person={selected.person} contact={details?.contacts?.[selected.person.id]} />
           </>
         ) : (
           <>
-            <p className="hint">Existing simulated Pod</p>
+            <p className="hint">Existing Pod</p>
             <dl className="details">
               <div><dt>Skill</dt><dd>{selected.topic}</dd></div>
               <div><dt>Pod goal</dt><dd>{selected.goal}</dd></div>
               <div><dt>Your role</dt><dd>{mode === "offer" ? "Additional mentor" : "Mentee"}</dd></div>
             </dl>
             <h2>Pod members</h2>
-            <MemberList members={selected.members} />
+            <MemberList members={selected.members} contacts={details?.contacts} />
           </>
         )}
         <div className="reason"><h2>Why this was recommended</h2><p>{selected.reason}</p></div>
@@ -573,7 +619,7 @@ export function Prototype() {
             <p className="pod-proposal-role">Your role <strong>{mode === "offer" ? "Mentor" : "Mentee"}</strong></p>
             <div>
               <h3>Potential members</h3>
-              <MemberList members={selected.members} />
+              <MemberList members={selected.members} contacts={details?.contacts} />
             </div>
             <div>
               <h3>Why this was recommended</h3>
@@ -618,7 +664,7 @@ export function Prototype() {
       <>
         <dl className="details">
           <div><dt>Study topic</dt><dd>{active.topic}</dd></div>
-          {!!active.role && <div><dt>Your role</dt><dd>{active.role}</dd></div>}
+          {!!active.role && <div><dt>Your role</dt><dd>{roleLabel(active.role)}</dd></div>}
           <div><dt>Session goal</dt><dd>{active.goal}</dd></div>
         </dl>
         {active.members && <><h2>Pod members</h2><MemberList members={active.members} /></>}
@@ -670,12 +716,13 @@ export function Prototype() {
         <h1 ref={headingRef} tabIndex={-1}>{title}</h1>
         <div className="content">
           {error && screen !== "matching" && <p className="notice" role="alert">{error}</p>}
+          {details?.error && <p className="hint" role="status">{details.error}</p>}
           {pending && <p className="hint" role="status">Working…</p>}
           {content}
         </div>
       </main>
       <footer className="site-footer">
-        <p>Recommended partners and Pod members are fictional. Study sessions are simulated.</p>
+        <p>Recommendations can include participants and demo profiles. Study sessions are simulated.</p>
       </footer>
     </>
   );

@@ -5,7 +5,7 @@ export const onboardingFields = [
   profileSchema.pick({ offeredSkill: true, offeredLevel: true }),
   profileSchema.pick({ learningSkill: true, currentLevel: true, targetLevel: true }),
   profileSchema.pick({ goal: true }),
-  profileSchema.pick({ alias: true, schedule: true, language: true }),
+  profileSchema.pick({ alias: true, schedule: true, language: true, contact: true }),
 ];
 
 const username = z.string().trim().toLowerCase().regex(/^[a-z0-9_]{3,24}$/);
@@ -40,7 +40,7 @@ export type Session = {
   source: MatchResult["source"] | "manual";
   person?: Person;
   members?: Member[];
-  role?: Member["role"] | "Mentor tambahan";
+  role?: Member["role"];
   status: "active" | "feedback" | "completed";
 };
 export type CompletedSession = Session & { feedback: { rating: number; note: string }; completedAt: string };
@@ -53,3 +53,4 @@ export type Store = {
 export const signedOutStore: Store = { account: null, profile: null, active: null, history: [] };
 export type Recommendation = ScoredMatch & { recommendationId: string };
 export type RecommendationList = { items: Recommendation[] };
+export type RecommendationContacts = Record<string, string>;

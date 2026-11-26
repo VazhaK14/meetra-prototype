@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
       throw new RequestError("Complete your profile and choose how you want to search.");
     }
 
-    const { alias, ...matchingProfile } = profile.data;
-    const [catalog, feedback] = await Promise.all([readCatalog(), recentFeedback(account.id)]);
+    const { alias, contact, ...matchingProfile } = profile.data;
+    const [catalog, feedback] = await Promise.all([readCatalog(account.id), recentFeedback(account.id)]);
     const results = await recommend({ ...search.data, profile: matchingProfile, feedback }, catalog);
     const rows = results.map((result) => ({ id: randomUUID(), result }));
     if (rows.length) {

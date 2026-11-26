@@ -139,6 +139,7 @@ button.option { display: grid; justify-content: stretch; gap: .2rem; padding: 1r
 .member-list, .history { list-style: none; padding: 0; }
 .member-list > li { grid-template-columns: minmax(0, 1fr) auto; }
 .member-list strong, .member-list span { display: block; }
+.member-list .member-contact { overflow-wrap: anywhere; }
 .member-list span, .history span, .session-line span { font-size: .875rem; }
 .reason, .notice { border-left: 3px solid var(--ink); padding: .25rem 0 .25rem .875rem; }
 .reason h2 { margin-bottom: .25rem; }
