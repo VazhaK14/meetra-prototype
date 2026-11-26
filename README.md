@@ -11,6 +11,7 @@ Gunakan Node.js 22, pnpm 10.34.9, dan satu database PostgreSQL khusus Meetra. Sa
 | `DATABASE_URL` | Wajib. URL PostgreSQL lokal atau URL pooled Neon untuk Vercel. |
 | `GEMINI_API_KEY` | Key dari Google AI Studio untuk pencocokan AI. Jika kosong atau Gemini gagal, aplikasi memakai pencocokan demo. |
 | `GEMINI_MODEL` | Opsional. Default `gemini-3.5-flash-lite`. Model pengganti perlu mendukung keluaran JSON terstruktur. |
+| `DISCORD_SERVER_INVITE_URL` | Opsional. Link undangan HTTPS ke server Discord early test, misalnya `https://discord.gg/KODE`. Meetra menampilkan link setelah semua calon anggota contoh menerima undangan simulasi. |
 
 ```sh
 pnpm install
@@ -31,7 +32,7 @@ Impor repositori ke Vercel, pilih preset **Next.js**, Root Directory **apps/web*
 
 - Peserta memakai username, password khusus uji, dan alias. Saat keluar atau berganti browser, peserta bisa masuk lagi untuk melanjutkan onboarding, sesi, atau feedback. Progres versi lama yang tersimpan di browser tidak diimpor.
 - Akun dummy sudah terisi dan tersedia sebagai kandidat. Akun tersebut tidak bisa dipakai login. Peserta lain tidak muncul di rekomendasi atau daftar anggota Pod. Pod hasil pembentukan atau topik manual hanya tersedia untuk pembuatnya melalui sesi dan riwayat akun.
-- Setiap pencarian menampilkan hingga lima rekomendasi partner atau Pod yang sudah ada, diurutkan berdasarkan skor. Jika belum ada Pod relevan dan anggota yang cocok cukup, layar **Bentuk Pod baru** menampilkan susunan calon anggota. Pod disimpan setelah peserta memilih **Buat Pod dan mulai sesi**. Pilihan yang dilewati disembunyikan sampai peserta memulai pencarian baru dari pilihan format.
+- Setiap pencarian menampilkan hingga lima rekomendasi partner atau Pod yang sudah ada, diurutkan berdasarkan skor. Jika belum ada Pod relevan dan anggota yang cocok cukup, layar **Form a new Pod** menampilkan susunan calon anggota. Untuk rekomendasi yang seluruhnya memakai akun contoh, pilih **Send invite** atau **Send invites** untuk mensimulasikan respons sebelum sesi dimulai. Pilihan yang dilewati disembunyikan sampai peserta memulai pencarian baru dari pilihan format.
 - Persentase kecocokan dihitung oleh server dari skill (55%), level pengajar terhadap target belajar (20%), jadwal (15%), dan bahasa (10%). Jika target belajar tidak tersedia, bobot level digabung ke skill. Kecocokan semantik yang dikenali Gemini mendapat sebagian bobot skill. Exchange 1-on-1 memerlukan kecocokan skill di kedua arah. Di Pod, skor memakai topik, jadwal Pod, dan anggota yang paling sesuai dengan peran peserta. Skor mengestimasi kecocokan profil. Feedback awal tetap mengukur relevansi dari sudut pandang peserta.
 - Gunakan data contoh. Jika Gemini aktif, server mengirim skill, tujuan, preferensi, dan sinyal relevansi dari sesi sebelumnya. Username, password, alias peserta, dan komentar feedback tetap di server. Key juga tetap di server. Batasi pembagian URL ke peserta yang diundang dan pantau pemakaian di Google AI Studio.
 - Target pilot di abstrak, yaitu enam sesi terkonfirmasi dalam tujuh hari, baru bisa dinilai saat mahasiswa sungguhan bisa saling terhubung dan berkoordinasi. Early test ini mencatat penyelesaian simulasi, relevansi, dan niat belajar.

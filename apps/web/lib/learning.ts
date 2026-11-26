@@ -4,9 +4,9 @@ import type { Account } from "./auth";
 import { catalogPersonLabel, podTitleLabel } from "./catalog";
 import { db, transaction } from "./db";
 import { RequestError } from "./http";
-import { levels, profileSchema, type FeedbackSignal, type MatchResult, type Mode, type Profile } from "./match";
+import { levels, profileSchema, simulatedInvitees, type FeedbackSignal, type MatchResult, type Mode, type Person, type Profile } from "./match";
 import { skillLabel } from "./skills";
-import { onboardingFields, signedOutStore, type CompletedSession, type LearningAction, type Session, type Store } from "./state";
+import { onboardingFields, signedOutStore, type CompletedSession, type LearningAction, type Session, type SimulatedInvitation, type Store } from "./state";
 
 function partnerSessionTitle(name: string) {
   return `Study with ${name}`;
@@ -30,6 +30,16 @@ function sessionLabels<T extends Session>(session: T, mode: Mode | null): T {
     ...(person && { person: catalogPersonLabel(person) }),
     ...(members && { members: members.map(catalogPersonLabel) }),
   };
+}
+
+function discordServerInviteUrl() {
+  const value = process.env.DISCORD_SERVER_INVITE_URL?.trim();
+  if (!value || !URL.canParse(value)) return;
+
+  const url = new URL(value);
+  if (url.protocol !== "https:" || url.port || url.username || url.password) return;
+  if (url.hostname === "discord.gg" && /^\/[\w-]+\/?$/.test(url.pathname)) return url.href;
+  if (url.hostname === "discord.com" && /^\/invite\/[\w-]+\/?$/.test(url.pathname)) return url.href;
 }
 
 export async function dashboard(account: Account | null): Promise<Store> {
@@ -109,6 +119,25 @@ async function lockAccount(client: PoolClient, id: string) {
   return rows[0];
 }
 
+type InvitationProgress = Pick<SimulatedInvitation, "acceptedIds" | "declinedBy">;
+type StoredRecommendation = {
+  mode: Mode;
+  result: Exclude<MatchResult, { kind: "empty" }> & { simulatedInvitation?: InvitationProgress };
+};
+
+async function readRecommendation(client: PoolClient, accountId: string, recommendationId: string) {
+  const { rows: [recommendation] } = await client.query<StoredRecommendation>(`
+    SELECT mode, result FROM recommendations
+    WHERE id = $1 AND account_id = $2 AND expires_at > now()
+  `, [recommendationId, accountId]);
+  if (!recommendation) throw new RequestError("This recommendation has expired. Start a new search.", 404);
+  return recommendation;
+}
+
+function allAccepted(invitees: Person[], progress: InvitationProgress | undefined) {
+  return Boolean(progress && !progress.declinedBy && invitees.every(({ id }) => progress.acceptedIds.includes(id)));
+}
+
 async function start(client: PoolClient, account: Account, action: Extract<LearningAction, { action: "start" | "new-topic" }>) {
   if (account.onboardingStep !== 4) throw new RequestError("Finish setting up your profile first.", 409);
   const { rows: previous } = await client.query("SELECT 1 FROM learning_sessions WHERE account_id = $1 AND recommendation_id = $2", [account.id, action.recommendationId]);
@@ -117,13 +146,11 @@ async function start(client: PoolClient, account: Account, action: Extract<Learn
   const { rows: active } = await client.query("SELECT 1 FROM learning_sessions WHERE account_id = $1 AND status <> 'completed'", [account.id]);
   if (active.length) throw new RequestError("Finish your active session before starting another.", 409);
 
-  const { rows } = await client.query<{ mode: Mode; result: Exclude<MatchResult, { kind: "empty" }> }>(`
-    SELECT mode, result FROM recommendations
-    WHERE id = $1 AND account_id = $2 AND expires_at > now()
-  `, [action.recommendationId, account.id]);
-  if (!rows[0]) throw new RequestError("This recommendation has expired. Start a new search.", 404);
-
-  const { mode, result } = rows[0];
+  const { mode, result } = await readRecommendation(client, account.id, action.recommendationId);
+  const invitees = simulatedInvitees(result);
+  if (action.action === "start" && invitees.length && !allAccepted(invitees, result.simulatedInvitation)) {
+    throw new RequestError("Wait for everyone to accept the invitation before starting.", 409);
+  }
   const profile = profileSchema.parse(account.draft);
   let podId: string | null = null;
   let snapshot: Omit<Session, "id" | "status">;
@@ -156,6 +183,41 @@ async function start(client: PoolClient, account: Account, action: Extract<Learn
   `, [randomUUID(), account.id, action.recommendationId, podId, snapshot]);
 }
 
+async function updateInvitation(client: PoolClient, account: Account,
+  action: Extract<LearningAction, { action: "send-invite" | "respond-to-invite" }>,
+): Promise<SimulatedInvitation> {
+  if (account.onboardingStep !== 4) throw new RequestError("Finish setting up your profile first.", 409);
+  const { recommendationId } = action;
+  const { result } = await readRecommendation(client, account.id, recommendationId);
+  const invitees = simulatedInvitees(result);
+  if (!invitees.length) throw new RequestError("Ask your facilitator to coordinate this match.", 409);
+
+  const previous = result.simulatedInvitation;
+  let progress: InvitationProgress = previous ?? { acceptedIds: [] };
+  if (action.action === "respond-to-invite") {
+    const { recipientId, response } = action;
+    if (!previous) throw new RequestError("Send the invitation before responding.", 409);
+    if (!invitees.some(({ id }) => id === recipientId)) throw new RequestError("This recipient is not on the invitation.", 400);
+    if (!previous.declinedBy && !previous.acceptedIds.includes(recipientId)) {
+      progress = response === "accept"
+        ? { acceptedIds: [...previous.acceptedIds, recipientId] }
+        : { ...previous, declinedBy: recipientId };
+    }
+  }
+
+  const accepted = allAccepted(invitees, progress);
+  if (progress !== previous) {
+    await client.query(`
+      UPDATE recommendations SET result = jsonb_set(result, '{simulatedInvitation}', $2::jsonb) WHERE id = $1
+    `, [recommendationId, progress]);
+    if (accepted) await start(client, account, { action: "start", recommendationId });
+  }
+
+  const status = accepted ? "accepted" : progress.declinedBy ? "declined" : "pending";
+  const inviteUrl = discordServerInviteUrl();
+  return { ...progress, status, discordAvailable: Boolean(inviteUrl), discordServerInviteUrl: accepted ? inviteUrl : undefined };
+}
+
 async function createPod(client: PoolClient, id: string, accountId: string, snapshot: Pick<Session, "title" | "topic" | "goal" | "members">, schedule: Profile["schedule"]) {
   await client.query("INSERT INTO pods (id, owner_id, title, topic, goal, schedule) VALUES ($1, $2, $3, $4, $5, $6)", [id, accountId, snapshot.title, snapshot.topic, snapshot.goal, schedule]);
   for (const member of snapshot.members ?? []) await joinPod(client, id, member.id, member.role);
@@ -171,9 +233,12 @@ async function joinPod(client: PoolClient, podId: string, accountId: string, rol
 export async function updateLearning(account: Account, action: LearningAction) {
   return transaction(async (client) => {
     const fresh = await lockAccount(client, account.id);
+    if (action.action === "send-invite" || action.action === "respond-to-invite") {
+      return { account: fresh, simulatedInvitation: await updateInvitation(client, fresh, action) };
+    }
     if (action.action === "start" || action.action === "new-topic") {
       await start(client, fresh, action);
-      return fresh;
+      return { account: fresh };
     }
 
     const { rows } = await client.query<{ status: Session["status"] }>(
@@ -189,6 +254,6 @@ export async function updateLearning(account: Account, action: LearningAction) {
       await client.query("INSERT INTO feedback VALUES ($1, $2, $3)", [action.sessionId, action.rating, action.note]);
       await client.query("UPDATE learning_sessions SET status = 'completed', completed_at = now() WHERE id = $1", [action.sessionId]);
     }
-    return fresh;
+    return { account: fresh };
   });
 }

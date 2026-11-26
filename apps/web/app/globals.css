@@ -60,7 +60,7 @@ h2 { font-size: 1.125rem; line-height: 1.35; }
 .welcome .hint { max-width: 30rem; }
 
 button, input, textarea, select { font: inherit; color: inherit; }
-button {
+button, .action-link {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -74,10 +74,11 @@ button {
   cursor: pointer;
   text-align: left;
 }
-button.secondary, button.option, button.link-button {
+button.secondary, button.option, button.link-button, .action-link {
   color: var(--ink);
   background: var(--paper);
 }
+.action-link { text-decoration: none; }
 button.link-button { text-decoration: underline; border: 0; padding-inline: 0; }
 button:disabled {
   color: var(--ink);
@@ -87,14 +88,14 @@ button:disabled {
   opacity: 1;
 }
 @media (hover: hover) {
-  button:enabled:hover { text-decoration: underline; }
+  button:enabled:hover, .action-link:hover { text-decoration: underline; }
 }
 :focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 .actions { display: flex; flex-wrap: wrap; gap: .625rem; align-items: flex-start; }
-.actions > button { flex-shrink: 0; max-width: 100%; }
+.actions > button, .actions > .action-link { flex-shrink: 0; max-width: 100%; }
 
 .stack, .options { display: grid; gap: 1.15rem; }
 .field, .edit-section { display: grid; gap: .4rem; min-width: 0; font-weight: 600; }

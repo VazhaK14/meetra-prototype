@@ -121,11 +121,12 @@ function podMatch(request: MatchRequest, pod: Pod, kind: "existing" | "new", sou
 function availableChoices(request: MatchRequest, { people, pods }: Catalog) {
   const excluded = new Set(request.excludedIds);
   const topic = mainTopic(request);
+  const candidates = people.filter(({ id }) => !excluded.has(id));
   return {
-    partners: people.filter((person) => !excluded.has(person.id) && partnerSkill(request, person, "gemini") > 0),
+    partners: candidates.filter((person) => partnerSkill(request, person, "gemini") > 0),
     existingPods: pods.filter((pod) => !excluded.has(pod.id) && skillSimilarity(topic, pod.topic, "gemini") > 0),
-    mentors: request.mode === "offer" ? [] : people.filter((person) => skillSimilarity(topic, person.offers, "gemini") > 0),
-    mentees: people.filter((person) => skillSimilarity(topic, person.learns, "gemini") > 0),
+    mentors: request.mode === "offer" ? [] : candidates.filter((person) => skillSimilarity(topic, person.offers, "gemini") > 0),
+    mentees: candidates.filter((person) => skillSimilarity(topic, person.learns, "gemini") > 0),
   };
 }
 

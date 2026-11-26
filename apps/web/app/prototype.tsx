@@ -3,15 +3,15 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { contactLabel } from "../lib/contact";
 import {
-  formatLabels, languageLabels, levelLabels, modeLabels, scheduleLabels,
+  formatLabels, languageLabels, levelLabels, modeLabels, scheduleLabels, simulatedInvitees,
   type Format, type Member, type Mode, type Person, type Profile,
 } from "../lib/match";
 import { skillLabel } from "../lib/skills";
 import { emptyProfile, ProfileFields, profileError, profileSteps, SkillSuggestions } from "./profile-form";
 
-import { signedOutStore, type AccountAction, type LearningAction, type Recommendation, type RecommendationContacts, type RecommendationList, type Session, type Store } from "../lib/state";
+import { signedOutStore, type AccountAction, type LearningAction, type LearningResponse, type Recommendation, type RecommendationContacts, type RecommendationList, type Session, type SimulatedInvitation, type Store } from "../lib/state";
 
-type Screen = "welcome" | "login" | "signup" | "onboarding" | "home" | "preferences" | "mode" | "format" | "matching" | "result" | "recommendation-detail" | "pod-proposal" | "pod-declined" | "new-topic" | "study" | "feedback";
+type Screen = "welcome" | "login" | "signup" | "onboarding" | "home" | "preferences" | "mode" | "format" | "matching" | "result" | "recommendation-detail" | "pod-proposal" | "pod-declined" | "invitation" | "new-topic" | "study" | "feedback";
 
 const intents = [
   { id: "offer", description: "Share a skill you know." },
@@ -98,6 +98,7 @@ export function Prototype() {
   const [format, setFormat] = useState<Format>("pair");
   const [items, setItems] = useState<Recommendation[]>([]);
   const [selected, setSelected] = useState<Recommendation | null>(null);
+  const [invitation, setInvitation] = useState<SimulatedInvitation | null>(null);
   const [contactDetails, setContactDetails] = useState<{
     recommendationId: string;
     contacts?: RecommendationContacts;
@@ -162,7 +163,7 @@ export function Prototype() {
 
   useEffect(() => {
     if (ready || loadError) headingRef.current?.focus();
-  }, [ready, loadError, screen, step, selected, excludedIds]);
+  }, [ready, loadError, screen, step, selected, excludedIds, invitation?.status]);
 
   function go(next: Screen) {
     setError("");
@@ -176,6 +177,7 @@ export function Prototype() {
       setDraft(emptyProfile);
       setItems([]);
       setSelected(null);
+      setInvitation(null);
       setExcludedIds([]);
       setRating(0);
       setNote("");
@@ -204,7 +206,7 @@ export function Prototype() {
         body: JSON.stringify(action),
         signal: AbortSignal.timeout(15000),
       });
-      const data = await response.json() as Store & { error?: string };
+      const data = await response.json() as LearningResponse & { error?: string };
       if (!response.ok) {
         if (response.status === 401 && action.action !== "login") {
           setStore(signedOutStore);
@@ -213,7 +215,8 @@ export function Prototype() {
         setError(data.error ?? "Your changes could not be saved. Try again.");
         return null;
       }
-      setStore(data);
+      const { simulatedInvitation, ...nextStore } = data;
+      setStore(nextStore);
       return data;
     } catch {
       setError("Meetra could not save your changes. Try again.");
@@ -316,8 +319,41 @@ export function Prototype() {
 
   async function startSession() {
     if (!selected) return;
+    if (simulatedInvitees(selected).length) {
+      const next = await update("learning", { action: "send-invite", recommendationId: selected.recommendationId });
+      if (next?.simulatedInvitation) {
+        setInvitation(next.simulatedInvitation);
+        go("invitation");
+      }
+      return;
+    }
     const next = await update("learning", { action: "start", recommendationId: selected.recommendationId });
     if (next) go(next.active?.status === "feedback" ? "feedback" : next.active ? "study" : "home");
+  }
+
+  async function respondToInvitation(recipientId: string, response: "accept" | "decline") {
+    if (!selected || !invitation || pendingRef.current) return;
+    const pendingInvitees = simulatedInvitees(selected).filter(({ id }) => !invitation.acceptedIds.includes(id));
+    // Reserve the tab during the click so the browser can allow navigation after the server confirms acceptance.
+    const opensDiscord = invitation.discordAvailable && response === "accept" && pendingInvitees.length === 1;
+    const discordTab = opensDiscord ? window.open("about:blank", "_blank") : null;
+    if (discordTab) discordTab.opener = null;
+
+    const next = await update("learning", {
+      action: "respond-to-invite", recommendationId: selected.recommendationId, recipientId, response,
+    });
+    const progress = next?.simulatedInvitation;
+    if (progress) setInvitation(progress);
+    if (!discordTab || discordTab.closed) return;
+    if (!progress?.discordServerInviteUrl) {
+      discordTab.close();
+      return;
+    }
+    try {
+      discordTab.location.replace(progress.discordServerInviteUrl);
+    } catch {
+      discordTab.close();
+    }
   }
 
   async function createTopic(event: FormEvent) {
@@ -570,7 +606,7 @@ export function Prototype() {
   } else if (screen === "recommendation-detail" && selected && selected.kind !== "new") {
     context = `Matchmaking · ${modeLabels[mode]} · ${formatLabels[format]}`;
     title = selected.kind === "partner" ? `Meet ${selected.person.name}` : selected.title;
-    const primaryAction = selected.kind === "partner" ? "Accept" : "Join";
+    const primaryAction = selected.kind === "existing" ? "Join" : simulatedInvitees(selected).length ? "Send invite" : "Accept";
     content = (
       <>
         <RecommendationScore item={selected} />
@@ -589,6 +625,7 @@ export function Prototype() {
           </>
         )}
         <div className="reason"><h2>Why this was recommended</h2><p>{selected.reason}</p></div>
+        {selected.kind === "partner" && selected.person.participant && <p className="hint">For a live match, ask your facilitator to coordinate Discord access.</p>}
         <Buttons>
           <button disabled={pending} onClick={startSession}>{primaryAction}</button>
           <BackButton to="results" disabled={pending} onClick={() => go("result")} />
@@ -599,11 +636,10 @@ export function Prototype() {
   } else if (screen === "pod-proposal" && selected?.kind === "new") {
     title = "Form a new Pod";
     context = `Matchmaking · ${modeLabels[mode]} · Pod`;
+    const canSimulateInvite = simulatedInvitees(selected).length > 0;
     content = (
       <>
-        <p>{excludedIds.length
-          ? "Meetra found potential members for a new Pod after you skipped the existing options."
-          : `Meetra found potential members for a new Pod focused on ${skillLabel(selected.topic)}.`}</p>
+        <p>Meetra found potential members for a new Pod focused on {skillLabel(selected.topic)}.</p>
         <section className="pod-proposal" aria-labelledby="pod-proposal-name">
           <header className="pod-proposal-header">
             <div>
@@ -624,12 +660,74 @@ export function Prototype() {
             </div>
           </div>
         </section>
+        {!canSimulateInvite && <p className="hint">For a live Pod, ask your facilitator to coordinate Discord access.</p>}
         <Buttons>
-          <button disabled={pending} onClick={startSession}>Create Pod and start session</button>
+          <button disabled={pending} onClick={startSession}>{canSimulateInvite ? "Send invites" : "Create Pod and start session"}</button>
           <BackButton to="format selection" disabled={pending} onClick={() => go("format")} />
         </Buttons>
       </>
     );
+  } else if (screen === "invitation" && selected && invitation) {
+    const isPair = selected.kind === "partner";
+    context = recommendationName(selected);
+    const invitees = simulatedInvitees(selected);
+    if (invitation.status === "accepted") {
+      title = isPair ? "Your match is ready" : "Your Pod is ready";
+      const inviteUrl = invitation.discordServerInviteUrl;
+      content = (
+        <>
+          {inviteUrl
+            ? <p id="discord-early-testing">This Discord server is for Meetra early testing only.</p>
+            : <p>Ask your facilitator for the Discord server invite.</p>}
+          <Buttons>
+            {inviteUrl && <a className="action-link" href={inviteUrl} target="_blank" rel="noopener noreferrer" aria-describedby="discord-early-testing">Open Discord</a>}
+            {active && <button onClick={() => go(active.status === "feedback" ? "feedback" : "study")}>Continue to session</button>}
+            <BackButton to="home" onClick={() => go("home")} />
+          </Buttons>
+        </>
+      );
+    } else if (invitation.status === "declined") {
+      title = "Invitation declined";
+      const declinedBy = invitees.find(({ id }) => id === invitation.declinedBy);
+      content = (
+        <>
+          {declinedBy && <p>{declinedBy.name} declined the invitation.</p>}
+          <Buttons>
+            <button onClick={() => {
+              if (!isPair) {
+                void search("pod", declinedBy ? [...excludedIds, declinedBy.id] : excludedIds);
+              } else {
+                skipRecommendation(selected);
+              }
+            }}>{isPair ? "Find another partner" : "Find another Pod"}</button>
+            <BackButton to="home" onClick={() => go("home")} />
+          </Buttons>
+        </>
+      );
+    } else {
+      title = isPair ? "Waiting for response" : "Waiting for responses";
+      content = (
+        <>
+          <p>Preview the invitations as the recipients. Their responses are simulated for early testing.</p>
+          <p className="hint" role="status">{invitation.acceptedIds.length} of {invitees.length} accepted</p>
+          <ul className="member-list">
+            {invitees.map(({ id, name }) => {
+              const accepted = invitation.acceptedIds.includes(id);
+              return (
+                <li key={id}>
+                  <div><strong>{name}</strong><span>{accepted ? "Accepted" : "Invitation received"}</span></div>
+                  {!accepted && <Buttons>
+                    <button disabled={pending} aria-label={`Accept as ${name}`} onClick={() => void respondToInvitation(id, "accept")}>Accept</button>
+                    <button disabled={pending} className="secondary" aria-label={`Decline as ${name}`} onClick={() => void respondToInvitation(id, "decline")}>Decline</button>
+                  </Buttons>}
+                </li>
+              );
+            })}
+          </ul>
+          <BackButton to={isPair ? "details" : "proposal"} disabled={pending} onClick={() => go(isPair ? "recommendation-detail" : "pod-proposal")} />
+        </>
+      );
+    }
   } else if (screen === "pod-declined") {
     title = mode === "offer" ? "Create a new Pod topic?" : "Look for another Pod?";
     context = `Matchmaking · ${modeLabels[mode]} · Pod`;
