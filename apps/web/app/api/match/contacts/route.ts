@@ -20,13 +20,17 @@ export async function GET(request: NextRequest) {
 
     const { result } = recommendation;
     const people = result.kind === "partner" ? [result.person] : result.members;
-    const ids = people.filter((person) => person.participant).map((person) => person.id);
-    const { rows } = await db().query<{ id: string; contact: string }>(`
-      SELECT id, profile->>'contact' AS contact FROM accounts
+    const ids = people.map((person) => person.id);
+    const { rows } = await db().query<{ id: string; contact: string | null }>(`
+      SELECT id, CASE WHEN dummy_profile IS NOT NULL THEN dummy_profile->>'contact'
+        ELSE profile->>'contact' END AS contact
+      FROM accounts
       WHERE id = ANY($1::text[]) AND id <> $2 AND onboarding_step = 4
-        AND profile @> '{"matchingEnabled":true}' AND NULLIF(profile->>'contact', '') IS NOT NULL
+        AND (dummy_profile IS NOT NULL OR profile @> '{"matchingEnabled":true}')
     `, [ids, account.id]);
-    const contacts: RecommendationContacts = Object.fromEntries(rows.map(({ id, contact }) => [id, contact]));
+    const contacts: RecommendationContacts = Object.fromEntries(rows.flatMap(({ id, contact }) => (
+      contact ? [[id, contact] as const] : []
+    )));
     return Response.json(contacts, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return fail(error);

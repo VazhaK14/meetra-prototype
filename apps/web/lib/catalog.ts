@@ -35,7 +35,7 @@ export function catalogPersonLabel<T extends Person>(person: T): T {
 export async function readCatalog(viewerId: string): Promise<Catalog> {
   const [profiles, pods] = await Promise.all([
     db().query<{ id: string; demo: Person | null; profile: unknown }>(`
-      SELECT id, dummy_profile AS demo, profile - ARRAY['contact', 'goal'] AS profile
+      SELECT id, dummy_profile - 'contact' AS demo, profile - ARRAY['contact', 'goal'] AS profile
       FROM accounts
       WHERE id <> $1 AND (
         dummy_profile IS NOT NULL OR (onboarding_step = 4 AND profile @> '{"matchingEnabled":true}')

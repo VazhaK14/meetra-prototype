@@ -35,7 +35,7 @@ function MemberList({ members, contacts }: { members: Member[]; contacts?: Recom
             <div>
               <strong>{member.name}</strong>
               {member.campus && <span>{member.campus}</span>}
-              {contact && <span className="member-contact">{contactLabel(contact)} {contact}</span>}
+              {contact && <span className="member-contact">{member.participant ? "" : "Demo "}{contactLabel(contact)} {contact}</span>}
             </div>
             <span>{roleLabel(member.role)}</span>
           </li>
@@ -52,7 +52,7 @@ function PersonDetails({ person, contact }: { person: Person; contact?: string }
       <div><dt>Teaches</dt><dd>{person.offers} · {levelLabels[person.level]}</dd></div>
       <div><dt>Wants to learn</dt><dd>{person.learns}</dd></div>
       <div><dt>Schedule and language</dt><dd>{scheduleLabels[person.schedule]} · {languageLabels[person.language]}</dd></div>
-      {contact && <div><dt>{contactLabel(contact)}</dt><dd>{contact}</dd></div>}
+      {contact && <div><dt>{person.participant ? "" : "Demo "}{contactLabel(contact)}</dt><dd>{contact}</dd></div>}
     </dl>
   );
 }
